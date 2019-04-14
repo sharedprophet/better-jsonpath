@@ -24,7 +24,6 @@ import {
 export class JSONPathParser extends Parser {
 	constructor() {
 		super(allTokens);
-
 		this.performSelfAnalysis();
 	}
 
