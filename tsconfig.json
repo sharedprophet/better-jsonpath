@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es5",
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"sourceMap": true,
+		"forceConsistentCasingInFileNames": true,
+		"newLine": "lf",
+		"allowJs": true,
+		"checkJs": false,
+		"noUnusedLocals": true,
+		"noEmit": true,
+		"pretty": true,
+		"strict": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"outDir": "dist"
+	},
+	"include": ["lib/**/*"],
+	"exclude": ["node_modules"]
+}
