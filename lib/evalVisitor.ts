@@ -3,14 +3,10 @@ import evaluate from 'static-eval';
 import { parseScript } from './esprima';
 import { ExpressionStatement } from 'estree';
 import { CstChildrenDictionary, CstNode, ICstVisitor, IToken } from 'chevrotain';
-import { lexer } from './lexer';
+import { lexer, integer_pattern } from './lexer';
 import { JSONPathParser, parser } from './parser';
+import { Match } from './match';
 import { isNode } from './util';
-
-export interface Match  {
-	path: string[];
-	value: any;
-}
 
 const BaseVisitor = parser.getBaseCstVisitorConstructor() as new (...args: any[]) => ICstVisitor<Match[], Match[]>;
 
@@ -137,14 +133,19 @@ export class EvalVisitor extends BaseVisitor {
 			case 'asterisk':
 				for (let match of scope) {
 					for (let prop of _.allKeys(match.value).filter(p => match.value[p] !== undefined)) {
-						result.push({ path: match.path.concat(prop), value: match.value[prop] });
+						if (integer_pattern.test(prop)) {
+							let num = Number(prop);
+							result.push({ path: match.path.concat(num), value: match.value[num] });
+						} else {
+							result.push({ path: match.path.concat(prop), value: match.value[prop] });
+						}
 					}
 				}
 				break;
 			case 'integer':
 				for (let match of scope) {
 					if (match.value[Number(token.image)] !== undefined) {
-						result.push({ path: match.path.concat(token.image), value: match.value[token.image] });
+						result.push({ path: match.path.concat(Number(token.image)), value: match.value[token.image] });
 					}
 				}
 				break;
@@ -225,7 +226,12 @@ export class EvalVisitor extends BaseVisitor {
 		let result: Match[] = [];
 		for (let match of scope) {
 			for (let prop of _.allKeys(match.value).filter(p => match.value[p] !== undefined)) {
-				result.push({ path: match.path.concat(prop), value: match.value[prop] });
+				if (integer_pattern.test(prop)) {
+					let num = Number(prop);
+					result.push({ path: match.path.concat(num), value: match.value[num] });
+				} else {
+					result.push({ path: match.path.concat(prop), value: match.value[prop] });
+				}
 			}
 		}
 		return result;
@@ -252,9 +258,10 @@ export class EvalVisitor extends BaseVisitor {
 		//integer
 		let token = ctx.integer[0] as IToken;
 		let result: Match[] = [];
+		let idx = Number(token.image);
 		for (let match of scope) {
-			if (match.value[Number(token.image)] !== undefined) {
-				result.push({ path: match.path.concat(token.image), value: match.value[token.image] });
+			if (match.value[idx] !== undefined) {
+				result.push({ path: match.path.concat(idx), value: match.value[idx] });
 			}
 		}
 		return result;

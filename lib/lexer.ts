@@ -12,6 +12,7 @@ export const comma = createToken({ name: 'comma', pattern: /,/ });
 export const colon = createToken({ name: 'colon', pattern: /:/ });
 export const asterisk = createToken({ name: 'asterisk', pattern: /\*/ });
 
+export const integer_pattern = /^-?(?:0|[1-9]\d*)$/;
 export const integer = createToken({ name: 'integer', pattern: /-?(?:0|[1-9]\d*)/ });
 export const identifier = createToken({ name: 'identifier', pattern: /[a-zA-Z_]+[a-zA-Z0-9_]*/ });
 export const quoted_string_double = createToken({
