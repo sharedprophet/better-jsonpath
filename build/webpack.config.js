@@ -30,12 +30,6 @@ module.exports = configure([{
 		filename: 'better-jsonpath.umd.js',
 		libraryTarget: 'umd'
 	},
-	target: 'web'
-}, {
-	output: {
-		filename: 'better-jsonpath.umd.min.js',
-		libraryTarget: 'umd'
-	},
 	target: 'web',
 	optimization: {
 		minimizer: [
@@ -52,12 +46,6 @@ module.exports = configure([{
 }, {
 	output: {
 		filename: 'better-jsonpath.umd2.js',
-		libraryTarget: 'umd2'
-	},
-	target: 'web'
-}, {
-	output: {
-		filename: 'better-jsonpath.umd2.min.js',
 		libraryTarget: 'umd2'
 	},
 	target: 'web',
@@ -78,12 +66,6 @@ module.exports = configure([{
 		filename: 'better-jsonpath.commonjs2.js',
 		libraryTarget: 'commonjs2'
 	},
-	target: 'node'
-}, {
-	output: {
-		filename: 'better-jsonpath.commonjs2.min.js',
-		libraryTarget: 'commonjs2'
-	},
 	target: 'node',
 	optimization: {
 		minimizer: [
@@ -102,12 +84,6 @@ module.exports = configure([{
 		filename: 'better-jsonpath.commonjs.js',
 		libraryTarget: 'commonjs'
 	},
-	target: 'node'
-}, {
-	output: {
-		filename: 'better-jsonpath.commonjs.min.js',
-		libraryTarget: 'commonjs'
-	},
 	target: 'node',
 	optimization: {
 		minimizer: [
@@ -124,12 +100,6 @@ module.exports = configure([{
 }, {
 	output: {
 		filename: 'better-jsonpath.amd.js',
-		libraryTarget: 'amd'
-	},
-	target: 'web'
-}, {
-	output: {
-		filename: 'better-jsonpath.amd.min.js',
 		libraryTarget: 'amd'
 	},
 	target: 'web',

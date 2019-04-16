@@ -2,12 +2,12 @@
 	"name": "better-jsonpath",
 	"version": "0.0.1",
 	"description": "A better JSONPath library",
-	"main": "dist/better-jsonpath.commonjs2.js",
+	"main": "dist/better-jsonpath.commonjs.js",
 	"typings": "dist/index.d.ts",
 	"author": "Ethan Johnson",
 	"license": "MIT",
 	"scripts": {
-		"build": "webpack --config build/webpack.config.js"
+		"build": "rimraf dist && webpack --config build/webpack.config.js"
 	},
 	"dependencies": {
 		"chevrotain": "^4.3.2",
@@ -23,6 +23,7 @@
 		"@typescript-eslint/eslint-plugin": "^1.6.0",
 		"@typescript-eslint/parser": "^1.6.0",
 		"eslint": "^5.16.0",
+		"rimraf": "2.6.3",
 		"terser-webpack-plugin": "1.2.3",
 		"ts-loader": "^5.3.3",
 		"ts-node": "^8.0.3",
