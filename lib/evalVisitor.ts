@@ -28,10 +28,10 @@ export class EvalVisitor extends BaseVisitor {
 		for (let match of scope) {
 			match.path.push('$');
 		}
-		let result: Match[] = [];
 		if (!ctx.pathComponents) {
-			return result;
+			return scope;
 		}
+		let result: Match[] = [];
 		for (let component of ctx.pathComponents) {
 			if (!isNode(component)) {
 				continue;
