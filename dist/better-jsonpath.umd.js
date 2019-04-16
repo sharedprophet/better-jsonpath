@@ -351,12 +351,17 @@ function evaluate(jsonpath) {
     if (!jsonpath || !objects || !objects.length) {
         return [];
     }
+    var res = lib_1.parser.parse(jsonpath);
+    var cst = res.cst;
+    if (!cst) {
+        return res;
+    }
     var result = [];
     for (var _a = 0, objects_1 = objects; _a < objects_1.length; _a++) {
         var obj = objects_1[_a];
         result.push({
             input: obj,
-            matches: evalVisitor.visit(lib_1.parser.parse(jsonpath).cst, [{ path: [], value: obj }])
+            matches: evalVisitor.visit(cst, [{ path: [], value: obj }])
         });
     }
     return result;
@@ -7895,6 +7900,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ })
-/******/ ])["default"];
+/******/ ]);
 });
 //# sourceMappingURL=better-jsonpath.umd.js.map

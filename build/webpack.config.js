@@ -13,7 +13,6 @@ let umd = {
 	output: {
 		filename: '[name].js',
 		path: helpers.root('dist'),
-		libraryExport: 'default',
 		libraryTarget: 'umd',
 		umdNamedDefine: true
 	},
