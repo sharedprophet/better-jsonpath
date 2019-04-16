@@ -1,118 +1,51 @@
 const merge = require('webpack-merge');
+const nodeExternals = require('webpack-node-externals');
 const TerserPlugin = require('terser-webpack-plugin');
 const helpers = require('./helpers');
 
-let baseConfig = {
+let umd = {
 	mode: 'production',
-	entry: helpers.root('index.ts'),
-	output: {
-		path: helpers.root('dist'),
-		library: 'better-jsonpath'
+	devtool: 'source-map',
+	entry: {
+		'better-jsonpath.umd': helpers.root('index.ts'),
+		'better-jsonpath.umd.min': helpers.root('index.ts')
 	},
-	module: { rules: [{ test: /\.ts$/, loader: 'ts-loader' }] },
+	output: {
+		filename: '[name].js',
+		path: helpers.root('dist'),
+		libraryExport: 'default',
+		libraryTarget: 'umd',
+		umdNamedDefine: true
+	},
+	target: 'web',
+	module: { rules: [{ test: /\.ts$/, loader: 'ts-loader', exclude: /node_modules/ }] },
+	optimization: {
+		minimizer: [
+			new TerserPlugin({
+				parallel: true,
+				include: /\.min\.js$/,
+				terserOptions: {
+					ecma: 5,
+					mangle: false,
+					output: { comments: false }
+				}
+			})
+		]
+	},
 	resolve: {
 		modules: ['node_modules'],
 		extensions: ['.ts', '.js']
 	},
-	performance: { hints: false }
+	externals: [nodeExternals()]
 };
 
-function configure(configs) {
-	let result = [];
-	for (let config of configs) {
-		result.push(merge({}, baseConfig, config));
-	}
-	return result;
-}
-
-module.exports = configure([{
-	output: {
-		filename: 'better-jsonpath.umd.js',
-		libraryTarget: 'umd'
-	},
-	target: 'web',
-	optimization: {
-		minimizer: [
-			new TerserPlugin({
-				parallel: true,
-				terserOptions: {
-					mangle: true,
-					compress: true,
-					output: { comments: false }
-				}
-			})
-		]
-	}
-}, {
-	output: {
-		filename: 'better-jsonpath.umd2.js',
-		libraryTarget: 'umd2'
-	},
-	target: 'web',
-	optimization: {
-		minimizer: [
-			new TerserPlugin({
-				parallel: true,
-				terserOptions: {
-					mangle: true,
-					compress: true,
-					output: { comments: false }
-				}
-			})
-		]
-	}
-}, {
-	output: {
-		filename: 'better-jsonpath.commonjs2.js',
-		libraryTarget: 'commonjs2'
-	},
-	target: 'node',
-	optimization: {
-		minimizer: [
-			new TerserPlugin({
-				parallel: true,
-				terserOptions: {
-					mangle: true,
-					compress: true,
-					output: { comments: false }
-				}
-			})
-		]
-	}
-}, {
-	output: {
-		filename: 'better-jsonpath.commonjs.js',
-		libraryTarget: 'commonjs'
-	},
-	target: 'node',
-	optimization: {
-		minimizer: [
-			new TerserPlugin({
-				parallel: true,
-				terserOptions: {
-					mangle: true,
-					compress: true,
-					output: { comments: false }
-				}
-			})
-		]
-	}
-}, {
-	output: {
-		filename: 'better-jsonpath.amd.js',
-		libraryTarget: 'amd'
-	},
-	target: 'web',
-	optimization: {
-		minimizer: [
-			new TerserPlugin({
-				parallel: true,
-				terserOptions: {
-					mangle: true,
-					compress: true,
-					output: { comments: false }
-				}
-			})
-		]
-	}
-}]);
+module.exports = [
+	umd,
+	merge(umd, {
+		entry: {
+			'index': helpers.root('index.ts'),
+			'index.min': helpers.root('index.ts')
+		},
+		output: { libraryTarget: 'commonjs' }
+	})
+];

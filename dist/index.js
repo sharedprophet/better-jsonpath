@@ -7883,4 +7883,4 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ })
 /******/ ])["default"]));
-//# sourceMappingURL=better-jsonpath.umd.js.map
+//# sourceMappingURL=index.js.map
