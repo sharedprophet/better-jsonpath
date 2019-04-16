@@ -2,7 +2,7 @@
 	"name": "better-jsonpath",
 	"version": "0.0.1",
 	"description": "A better JSONPath library",
-	"main": "dist/better-jsonpath.umd2.js",
+	"main": "dist/better-jsonpath.commonjs2.js",
 	"typings": "dist/index.d.ts",
 	"author": "Ethan Johnson",
 	"license": "MIT",
