@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"description": "A better JSONPath library",
 	"main": "dist/index.js",
+	"module": "dist/better-jsonpath.umd.js",
 	"typings": "dist/index.d.ts",
 	"author": "Ethan Johnson",
 	"license": "MIT",

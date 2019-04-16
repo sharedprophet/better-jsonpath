@@ -1,4 +1,14 @@
-(function(e, a) { for(var i in a) e[i] = a[i]; }(exports, /******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else {
+		var a = factory();
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
+})(window, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -774,6 +784,9 @@ var EvalVisitor = /** @class */ (function (_super) {
             match.path.push('$');
         }
         var result = [];
+        if (!ctx.pathComponents) {
+            return result;
+        }
         for (var _c = 0, _d = ctx.pathComponents; _c < _d.length; _c++) {
             var component = _d[_c];
             if (!util_1.isNode(component)) {
@@ -7882,5 +7895,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ })
-/******/ ])["default"]));
+/******/ ])["default"];
+});
 //# sourceMappingURL=better-jsonpath.umd.js.map

@@ -774,6 +774,9 @@ var EvalVisitor = /** @class */ (function (_super) {
             match.path.push('$');
         }
         var result = [];
+        if (!ctx.pathComponents) {
+            return result;
+        }
         for (var _c = 0, _d = ctx.pathComponents; _c < _d.length; _c++) {
             var component = _d[_c];
             if (!util_1.isNode(component)) {
