@@ -81,9 +81,7 @@ export class EvalVisitor extends BaseVisitor {
 		for (let i = 0; i < newScope.length; i++) {
 			let obj = newScope[i].value;
 			for (let prop of _.allKeys(obj)) {
-				if (typeof obj[prop] === 'object') {
-					newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
-				}
+				newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
 			}
 		}
 		let result = newScope;
@@ -191,9 +189,7 @@ export class EvalVisitor extends BaseVisitor {
 		for (let i = 0; i < newScope.length; i++) {
 			let obj = newScope[i].value;
 			for (let prop of _.allKeys(obj)) {
-				if (typeof obj[prop] === 'object') {
-					newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
-				}
+				newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
 			}
 		}
 		let result = newScope;

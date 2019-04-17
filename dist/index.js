@@ -263,7 +263,7 @@ exports.quoted_string_single = chevrotain_1.createToken({
     name: 'quoted_string_single',
     pattern: /'(?:\\['bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^'\\])*'/
 });
-exports.script_expression = chevrotain_1.createToken({ name: 'script_expression', pattern: /[^\)]+([^\)]\([^\)]*\)[^\)])*/ });
+exports.script_expression = chevrotain_1.createToken({ name: 'script_expression', pattern: /[^)]+([^)]\([^)]*\)[^)]*)*(?=\)])/ });
 exports.allTokens = [
     exports.dollar,
     exports.dot,
@@ -833,9 +833,7 @@ var EvalVisitor = /** @class */ (function (_super) {
             var obj = newScope[i].value;
             for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
                 var prop = _a[_i];
-                if (typeof obj[prop] === 'object') {
-                    newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
-                }
+                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
             }
         }
         var result = newScope;
@@ -953,9 +951,7 @@ var EvalVisitor = /** @class */ (function (_super) {
             var obj = newScope[i].value;
             for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
                 var prop = _a[_i];
-                if (typeof obj[prop] === 'object') {
-                    newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
-                }
+                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
             }
         }
         var result = newScope;

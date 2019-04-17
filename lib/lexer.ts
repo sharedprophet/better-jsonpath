@@ -23,7 +23,7 @@ export const quoted_string_single = createToken({
 	name: 'quoted_string_single',
 	pattern: /'(?:\\['bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^'\\])*'/
 });
-export const script_expression = createToken({ name: 'script_expression', pattern: /[^\)]+([^\)]\([^\)]*\)[^\)])*/ });
+export const script_expression = createToken({ name: 'script_expression', pattern: /[^)]+([^)]\([^)]*\)[^)]*)*(?=\)])/ });
 
 export const allTokens = [
 	dollar,
