@@ -8,7 +8,7 @@
 	"author": "Ethan Johnson",
 	"license": "MIT",
 	"scripts": {
-		"prepublish": "yarn run build",
+		"prepublish": "yarn",
 		"build": "rimraf dist && webpack --config build/webpack.config.js"
 	},
 	"dependencies": {

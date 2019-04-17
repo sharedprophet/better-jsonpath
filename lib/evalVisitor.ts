@@ -31,12 +31,12 @@ export class EvalVisitor extends BaseVisitor {
 		if (!ctx.pathComponents) {
 			return scope;
 		}
-		let result: Match[] = [];
+		let result = scope;
 		for (let component of ctx.pathComponents) {
 			if (!isNode(component)) {
 				continue;
 			}
-			result = result.concat(this.visit(component, scope));
+			result = this.visit(component, result);
 		}
 		return result;
 	}
@@ -351,8 +351,7 @@ export class EvalVisitor extends BaseVisitor {
 		let result: Match[] = [];
 		for (let match of scope) {
 			try {
-				let res = evaluate(ast, { '@': match.value });
-				if (res) {
+				if (evaluate(ast, { '@': match.value })) {
 					result.push(match);
 				}
 			} catch (err) {

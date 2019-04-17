@@ -91,7 +91,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 6);
+/******/ 	return __webpack_require__(__webpack_require__.s = 7);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -248,16 +248,21 @@ exports.parser = new JSONPathParser();
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+var underscore_1 = __importDefault(__webpack_require__(0));
 var chevrotain_1 = __webpack_require__(4);
+var esprima_1 = __webpack_require__(5);
 exports.dollar = chevrotain_1.createToken({ name: 'dollar', pattern: /\$/ });
 exports.dot_dot = chevrotain_1.createToken({ name: 'dot_dot', pattern: /\.\./ });
 exports.dot = chevrotain_1.createToken({ name: 'dot', pattern: /\./, longer_alt: exports.dot_dot });
 exports.square_brace_open = chevrotain_1.createToken({ name: 'square_brace_open', pattern: /\[/ });
 exports.square_brace_close = chevrotain_1.createToken({ name: 'square_brace_close', pattern: /\]/ });
-exports.question_mark = chevrotain_1.createToken({ name: 'question_mark', pattern: /\?/ });
 exports.paren_open = chevrotain_1.createToken({ name: 'paren_open', pattern: /\(/ });
 exports.paren_close = chevrotain_1.createToken({ name: 'paren_close', pattern: /\)/ });
+exports.question_mark = chevrotain_1.createToken({ name: 'question_mark', pattern: /\?/ });
 exports.comma = chevrotain_1.createToken({ name: 'comma', pattern: /,/ });
 exports.colon = chevrotain_1.createToken({ name: 'colon', pattern: /:/ });
 exports.asterisk = chevrotain_1.createToken({ name: 'asterisk', pattern: /\*/ });
@@ -272,16 +277,20 @@ exports.quoted_string_single = chevrotain_1.createToken({
     name: 'quoted_string_single',
     pattern: /'(?:\\['bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^'\\])*'/
 });
-exports.script_expression = chevrotain_1.createToken({ name: 'script_expression', pattern: /[^)]+([^)]\([^)]*\)[^)]*)*(?=\)])/ });
+exports.script_expression = chevrotain_1.createToken({
+    name: 'script_expression',
+    pattern: matchScriptExpression,
+    line_breaks: false
+});
 exports.allTokens = [
     exports.dollar,
     exports.dot,
     exports.dot_dot,
-    exports.square_brace_open,
     exports.square_brace_close,
-    exports.question_mark,
+    exports.square_brace_open,
     exports.paren_open,
     exports.paren_close,
+    exports.question_mark,
     exports.comma,
     exports.colon,
     exports.asterisk,
@@ -292,6 +301,19 @@ exports.allTokens = [
     exports.script_expression
 ];
 exports.lexer = new chevrotain_1.Lexer(exports.allTokens);
+function matchScriptExpression(text, startOffset) {
+    for (var endOffset = text.length - 1; endOffset >= startOffset; endOffset--) {
+        var str = text.substring(startOffset, endOffset + 1);
+        try {
+            esprima_1.parseScript(str, {});
+        }
+        catch (_a) {
+            continue;
+        }
+        return underscore_1.default.extend([str], { index: startOffset, input: text });
+    }
+    return null;
+}
 
 
 /***/ }),
@@ -304,8 +326,8 @@ function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-__export(__webpack_require__(7));
-__export(__webpack_require__(9));
+__export(__webpack_require__(8));
+__export(__webpack_require__(10));
 __export(__webpack_require__(2));
 __export(__webpack_require__(1));
 
@@ -318,876 +340,6 @@ module.exports = require("chevrotain");
 
 /***/ }),
 /* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-function isNode(element) {
-    return !!element.name;
-}
-exports.isNode = isNode;
-
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-var lib_1 = __webpack_require__(3);
-__export(__webpack_require__(3));
-exports.default = { eval: evaluate };
-var evalVisitor = new lib_1.EvalVisitor();
-function evaluate(jsonpath) {
-    var objects = [];
-    for (var _i = 1; _i < arguments.length; _i++) {
-        objects[_i - 1] = arguments[_i];
-    }
-    if (!jsonpath || !objects || !objects.length) {
-        return [];
-    }
-    var res = lib_1.parser.parse(jsonpath);
-    var cst = res.cst;
-    if (!cst) {
-        return res;
-    }
-    var result = [];
-    for (var _a = 0, objects_1 = objects; _a < objects_1.length; _a++) {
-        var obj = objects_1[_a];
-        result.push({
-            input: obj,
-            matches: evalVisitor.visit(cst, [{ path: [], value: obj }])
-        });
-    }
-    return result;
-}
-
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-var underscore_1 = __importDefault(__webpack_require__(0));
-var util_1 = __webpack_require__(8);
-var parser_1 = __webpack_require__(1);
-var util_2 = __webpack_require__(5);
-var BaseVisitor = parser_1.parser.getBaseCstVisitorConstructor();
-var DebugVisitor = /** @class */ (function (_super) {
-    __extends(DebugVisitor, _super);
-    function DebugVisitor() {
-        var _this = _super.call(this) || this;
-        _this.validateVisitor();
-        return _this;
-    }
-    DebugVisitor.prototype.jsonpath = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_1 = childArray; _b < childArray_1.length; _b++) {
-                var child = childArray_1[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.pathComponents = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_2 = childArray; _b < childArray_2.length; _b++) {
-                var child = childArray_2[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.pathComponent = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_3 = childArray; _b < childArray_3.length; _b++) {
-                var child = childArray_3[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.memberComponent = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_4 = childArray; _b < childArray_4.length; _b++) {
-                var child = childArray_4[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.descendantMemberComponent = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_5 = childArray; _b < childArray_5.length; _b++) {
-                var child = childArray_5[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.childMemberComponent = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_6 = childArray; _b < childArray_6.length; _b++) {
-                var child = childArray_6[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.leadingChildMemberExpression = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_7 = childArray; _b < childArray_7.length; _b++) {
-                var child = childArray_7[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.memberExpression = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_8 = childArray; _b < childArray_8.length; _b++) {
-                var child = childArray_8[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.subscriptComponent = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_9 = childArray; _b < childArray_9.length; _b++) {
-                var child = childArray_9[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.childSubscriptComponent = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_10 = childArray; _b < childArray_10.length; _b++) {
-                var child = childArray_10[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.descendantSubscriptComponent = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_11 = childArray; _b < childArray_11.length; _b++) {
-                var child = childArray_11[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.subscript = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_12 = childArray; _b < childArray_12.length; _b++) {
-                var child = childArray_12[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.subscriptExpression = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_13 = childArray; _b < childArray_13.length; _b++) {
-                var child = childArray_13[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.subscriptExpressionList = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_14 = childArray; _b < childArray_14.length; _b++) {
-                var child = childArray_14[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.subscriptExpressionListable = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_15 = childArray; _b < childArray_15.length; _b++) {
-                var child = childArray_15[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.stringLiteral = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_16 = childArray; _b < childArray_16.length; _b++) {
-                var child = childArray_16[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.arraySlice = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_17 = childArray; _b < childArray_17.length; _b++) {
-                var child = childArray_17[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.scriptExpression = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_18 = childArray; _b < childArray_18.length; _b++) {
-                var child = childArray_18[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    DebugVisitor.prototype.filterExpression = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_19 = childArray; _b < childArray_19.length; _b++) {
-                var child = childArray_19[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
-            }
-        }
-    };
-    return DebugVisitor;
-}(BaseVisitor));
-exports.DebugVisitor = DebugVisitor;
-
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-module.exports = require("util");
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-var underscore_1 = __importDefault(__webpack_require__(0));
-var static_eval_1 = __importDefault(__webpack_require__(10));
-var esprima_1 = __webpack_require__(11);
-var lexer_1 = __webpack_require__(2);
-var parser_1 = __webpack_require__(1);
-var util_1 = __webpack_require__(5);
-var BaseVisitor = parser_1.parser.getBaseCstVisitorConstructor();
-var EvalVisitor = /** @class */ (function (_super) {
-    __extends(EvalVisitor, _super);
-    function EvalVisitor() {
-        var _this = _super.call(this) || this;
-        _this.validateVisitor();
-        return _this;
-    }
-    EvalVisitor.prototype.jsonpath = function (ctx, scope) {
-        if (!ctx.dollar) {
-            for (var _i = 0, _a = ctx.leadingChildMemberExpression; _i < _a.length; _i++) {
-                var child = _a[_i];
-                if (!util_1.isNode(child)) {
-                    continue;
-                }
-                scope = this.visit(child, scope).filter(function (m) { return typeof m.value === 'object'; });
-            }
-        }
-        for (var _b = 0, scope_1 = scope; _b < scope_1.length; _b++) {
-            var match = scope_1[_b];
-            match.path.push('$');
-        }
-        if (!ctx.pathComponents) {
-            return scope;
-        }
-        var result = [];
-        for (var _c = 0, _d = ctx.pathComponents; _c < _d.length; _c++) {
-            var component = _d[_c];
-            if (!util_1.isNode(component)) {
-                continue;
-            }
-            result = result.concat(this.visit(component, scope));
-        }
-        return result;
-    };
-    EvalVisitor.prototype.pathComponents = function (ctx, scope) {
-        var result = scope;
-        for (var _i = 0, _a = ctx.pathComponent; _i < _a.length; _i++) {
-            var component = _a[_i];
-            if (!util_1.isNode(component)) {
-                continue;
-            }
-            result = this.visit(component, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.pathComponent = function (ctx, scope) {
-        var result = scope;
-        var component = ctx.subscriptComponent || ctx.memberComponent;
-        for (var _i = 0, component_1 = component; _i < component_1.length; _i++) {
-            var element = component_1[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.memberComponent = function (ctx, scope) {
-        var result = scope;
-        var component = ctx.descendantMemberComponent || ctx.childMemberComponent;
-        for (var _i = 0, component_2 = component; _i < component_2.length; _i++) {
-            var element = component_2[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.descendantMemberComponent = function (ctx, scope) {
-        var newScope = underscore_1.default.clone(scope);
-        for (var i = 0; i < newScope.length; i++) {
-            var obj = newScope[i].value;
-            for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
-                var prop = _a[_i];
-                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
-            }
-        }
-        var result = newScope;
-        for (var _b = 0, _c = ctx.memberExpression; _b < _c.length; _b++) {
-            var element = _c[_b];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.childMemberComponent = function (ctx, scope) {
-        var result = scope;
-        for (var _i = 0, _a = ctx.memberExpression; _i < _a.length; _i++) {
-            var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.leadingChildMemberExpression = function (ctx, scope) {
-        var result = scope;
-        for (var _i = 0, _a = ctx.memberExpression; _i < _a.length; _i++) {
-            var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.memberExpression = function (ctx, scope) {
-        var key;
-        var token;
-        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
-            var prop = _a[_i];
-            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
-                var node = ctx[prop][0];
-                return this.visit(node, scope);
-            }
-            key = prop;
-            for (var _b = 0, _c = ctx[prop]; _b < _c.length; _b++) {
-                var child = _c[_b];
-                token = child;
-            }
-        }
-        var result = [];
-        switch (key) {
-            case 'asterisk':
-                var _loop_1 = function (match) {
-                    for (var _i = 0, _a = underscore_1.default.allKeys(match.value).filter(function (p) { return match.value[p] !== undefined; }); _i < _a.length; _i++) {
-                        var prop = _a[_i];
-                        if (lexer_1.integer_pattern.test(prop)) {
-                            var num = Number(prop);
-                            result.push({ path: match.path.concat(num), value: match.value[num] });
-                        }
-                        else {
-                            result.push({ path: match.path.concat(prop), value: match.value[prop] });
-                        }
-                    }
-                };
-                for (var _d = 0, scope_2 = scope; _d < scope_2.length; _d++) {
-                    var match = scope_2[_d];
-                    _loop_1(match);
-                }
-                break;
-            case 'integer':
-                for (var _e = 0, scope_3 = scope; _e < scope_3.length; _e++) {
-                    var match = scope_3[_e];
-                    if (match.value[Number(token.image)] !== undefined) {
-                        result.push({ path: match.path.concat(Number(token.image)), value: match.value[token.image] });
-                    }
-                }
-                break;
-            case 'identifier':
-                for (var _f = 0, scope_4 = scope; _f < scope_4.length; _f++) {
-                    var match = scope_4[_f];
-                    if (match.value[token.image] !== undefined) {
-                        result.push({ path: match.path.concat(token.image), value: match.value[token.image] });
-                    }
-                }
-                break;
-        }
-        return result;
-    };
-    EvalVisitor.prototype.subscriptComponent = function (ctx, scope) {
-        var result = scope;
-        var component = ctx.descendantSubscriptComponent || ctx.childSubscriptComponent;
-        for (var _i = 0, component_3 = component; _i < component_3.length; _i++) {
-            var element = component_3[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.childSubscriptComponent = function (ctx, scope) {
-        var result = scope;
-        for (var _i = 0, _a = ctx.subscript; _i < _a.length; _i++) {
-            var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.descendantSubscriptComponent = function (ctx, scope) {
-        var newScope = underscore_1.default.clone(scope);
-        for (var i = 0; i < newScope.length; i++) {
-            var obj = newScope[i].value;
-            for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
-                var prop = _a[_i];
-                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
-            }
-        }
-        var result = newScope;
-        for (var _b = 0, _c = ctx.subscript; _b < _c.length; _b++) {
-            var element = _c[_b];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.subscript = function (ctx, scope) {
-        var result = scope;
-        var component = ctx.subscriptExpression || ctx.subscriptExpressionList;
-        for (var _i = 0, component_4 = component; _i < component_4.length; _i++) {
-            var element = component_4[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.subscriptExpression = function (ctx, scope) {
-        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
-            var prop = _a[_i];
-            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
-                var node = ctx[prop][0];
-                return this.visit(node, scope);
-            }
-        }
-        //asterisk
-        var result = [];
-        var _loop_2 = function (match) {
-            for (var _i = 0, _a = underscore_1.default.allKeys(match.value).filter(function (p) { return match.value[p] !== undefined; }); _i < _a.length; _i++) {
-                var prop = _a[_i];
-                if (lexer_1.integer_pattern.test(prop)) {
-                    var num = Number(prop);
-                    result.push({ path: match.path.concat(num), value: match.value[num] });
-                }
-                else {
-                    result.push({ path: match.path.concat(prop), value: match.value[prop] });
-                }
-            }
-        };
-        for (var _b = 0, scope_5 = scope; _b < scope_5.length; _b++) {
-            var match = scope_5[_b];
-            _loop_2(match);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.subscriptExpressionList = function (ctx, scope) {
-        var result = [];
-        for (var _i = 0, _a = ctx.subscriptExpressionListable; _i < _a.length; _i++) {
-            var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = result.concat(this.visit(element, scope));
-        }
-        return result;
-    };
-    EvalVisitor.prototype.subscriptExpressionListable = function (ctx, scope) {
-        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
-            var prop = _a[_i];
-            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
-                var node = ctx[prop][0];
-                return this.visit(node, scope);
-            }
-        }
-        //integer
-        var token = ctx.integer[0];
-        var result = [];
-        var idx = Number(token.image);
-        for (var _b = 0, scope_6 = scope; _b < scope_6.length; _b++) {
-            var match = scope_6[_b];
-            if (match.value[idx] !== undefined) {
-                result.push({ path: match.path.concat(idx), value: match.value[idx] });
-            }
-        }
-        return result;
-    };
-    EvalVisitor.prototype.stringLiteral = function (ctx, scope) {
-        var result = [];
-        var component = ctx.quoted_string_double || ctx.quoted_string_single;
-        for (var _i = 0, component_5 = component; _i < component_5.length; _i++) {
-            var element = component_5[_i];
-            if (util_1.isNode(element)) {
-                continue;
-            }
-            var str = element.image.substr(1, element.image.length - 2);
-            for (var _a = 0, scope_7 = scope; _a < scope_7.length; _a++) {
-                var match = scope_7[_a];
-                if (match.value[str] !== undefined) {
-                    result.push({ path: match.path.concat(str), value: match.value[str] });
-                }
-            }
-        }
-        return result;
-    };
-    EvalVisitor.prototype.arraySlice = function (ctx, scope) {
-        var result = [];
-        if (!ctx.integer.length) {
-            for (var _i = 0, scope_8 = scope; _i < scope_8.length; _i++) {
-                var match = scope_8[_i];
-                if (Array.isArray(match.value)) {
-                    result.push(match);
-                }
-            }
-        }
-        if (result.length) {
-            return result;
-        }
-        var integers = ctx.integer;
-        var colons = ctx.colon;
-        var start = null;
-        var end = null;
-        var step = null;
-        if (integers[0].startOffset > colons[0].startOffset) {
-            end = Number(integers[0].image);
-            if (integers.length > 1) {
-                step = Number(integers[1].image);
-            }
-        }
-        else {
-            start = Number(integers[0].image);
-            if (integers.length > 1) {
-                if (colons.length > 1 && integers[1].startOffset > colons[1].startOffset) {
-                    step = Number(integers[1].image);
-                }
-                else {
-                    end = Number(integers[1].image);
-                    if (integers.length > 2) {
-                        step = Number(integers[2].image);
-                    }
-                }
-            }
-        }
-        for (var _a = 0, scope_9 = scope; _a < scope_9.length; _a++) {
-            var match = scope_9[_a];
-            if (Array.isArray(match.value)) {
-                result.push({ path: match.path, value: slice(match.value, start, end, step) });
-            }
-        }
-        return result;
-    };
-    EvalVisitor.prototype.scriptExpression = function (ctx, scope) {
-        var script = ctx.script_expression[0].image;
-        var ast = esprima_1.parseScript(script, {}).body[0].expression;
-        var parser = new parser_1.JSONPathParser();
-        var result = [];
-        for (var _i = 0, scope_10 = scope; _i < scope_10.length; _i++) {
-            var match = scope_10[_i];
-            try {
-                var text = '[' + static_eval_1.default(ast, { '@': match.value }) + ']';
-                var lexResult = lexer_1.lexer.tokenize(text);
-                parser.input = lexResult.tokens;
-                var res = this.visit(parser.childSubscriptComponent(), [match]);
-                if (res && res.length) {
-                    result = result.concat(res);
-                }
-            }
-            catch (_a) { }
-        }
-        return result;
-    };
-    EvalVisitor.prototype.filterExpression = function (ctx, scope) {
-        var script = ctx.script_expression[0].image;
-        var ast = esprima_1.parseScript(script, {}).body[0].expression;
-        var result = [];
-        for (var _i = 0, scope_11 = scope; _i < scope_11.length; _i++) {
-            var match = scope_11[_i];
-            try {
-                var res = static_eval_1.default(ast, { '@': match.value });
-                if (res) {
-                    result.push(match);
-                }
-            }
-            catch (err) {
-                console.warn(script, err);
-            }
-        }
-        return result;
-    };
-    return EvalVisitor;
-}(BaseVisitor));
-exports.EvalVisitor = EvalVisitor;
-function slice(array, start, end, step) {
-    var result = [];
-    var len = array.length;
-    if (step === 0) {
-        throw new Error('step cannot be zero');
-    }
-    if (step === null) {
-        step = 1;
-    }
-    start = (start !== null && start < 0) ? len + start : start;
-    end = (end !== null && end < 0) ? len + end : end;
-    start = Number(start === 0 ? 0 : !start ? (step > 0 ? 0 : len - 1) : start);
-    end = Number(end === 0 ? 0 : !end ? (step > 0 ? len : -1) : end);
-    start = step > 0 ? Math.max(0, start) : Math.min(len, start);
-    end = step > 0 ? Math.min(end, len) : Math.max(-1, end);
-    if (step > 0 && end <= start) {
-        return result;
-    }
-    if (step < 0 && start <= end) {
-        return result;
-    }
-    for (var i = start; i !== end; i += step) {
-        if ((step < 0 && i <= end) || (step > 0 && i >= end)) {
-            break;
-        }
-        result.push(array[i]);
-    }
-    return result;
-}
-
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports) {
-
-module.exports = require("static-eval");
-
-/***/ }),
-/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -7894,6 +7046,875 @@ return /******/ (function(modules) { // webpackBootstrap
 });
 ;
 
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+function isNode(element) {
+    return !!element.name;
+}
+exports.isNode = isNode;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+var lib_1 = __webpack_require__(3);
+__export(__webpack_require__(3));
+exports.default = { eval: evaluate };
+var evalVisitor = new lib_1.EvalVisitor();
+function evaluate(jsonpath) {
+    var objects = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        objects[_i - 1] = arguments[_i];
+    }
+    if (!jsonpath || !objects || !objects.length) {
+        return [];
+    }
+    var res = lib_1.parser.parse(jsonpath);
+    var cst = res.cst;
+    if (!cst) {
+        return res;
+    }
+    var result = [];
+    for (var _a = 0, objects_1 = objects; _a < objects_1.length; _a++) {
+        var obj = objects_1[_a];
+        result.push({
+            input: obj,
+            matches: evalVisitor.visit(cst, [{ path: [], value: obj }])
+        });
+    }
+    return result;
+}
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var underscore_1 = __importDefault(__webpack_require__(0));
+var util_1 = __webpack_require__(9);
+var parser_1 = __webpack_require__(1);
+var util_2 = __webpack_require__(6);
+var BaseVisitor = parser_1.parser.getBaseCstVisitorConstructor();
+var DebugVisitor = /** @class */ (function (_super) {
+    __extends(DebugVisitor, _super);
+    function DebugVisitor() {
+        var _this = _super.call(this) || this;
+        _this.validateVisitor();
+        return _this;
+    }
+    DebugVisitor.prototype.jsonpath = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_1 = childArray; _b < childArray_1.length; _b++) {
+                var child = childArray_1[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.pathComponents = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_2 = childArray; _b < childArray_2.length; _b++) {
+                var child = childArray_2[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.pathComponent = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_3 = childArray; _b < childArray_3.length; _b++) {
+                var child = childArray_3[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.memberComponent = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_4 = childArray; _b < childArray_4.length; _b++) {
+                var child = childArray_4[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.descendantMemberComponent = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_5 = childArray; _b < childArray_5.length; _b++) {
+                var child = childArray_5[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.childMemberComponent = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_6 = childArray; _b < childArray_6.length; _b++) {
+                var child = childArray_6[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.leadingChildMemberExpression = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_7 = childArray; _b < childArray_7.length; _b++) {
+                var child = childArray_7[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.memberExpression = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_8 = childArray; _b < childArray_8.length; _b++) {
+                var child = childArray_8[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.subscriptComponent = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_9 = childArray; _b < childArray_9.length; _b++) {
+                var child = childArray_9[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.childSubscriptComponent = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_10 = childArray; _b < childArray_10.length; _b++) {
+                var child = childArray_10[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.descendantSubscriptComponent = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_11 = childArray; _b < childArray_11.length; _b++) {
+                var child = childArray_11[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.subscript = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_12 = childArray; _b < childArray_12.length; _b++) {
+                var child = childArray_12[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.subscriptExpression = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_13 = childArray; _b < childArray_13.length; _b++) {
+                var child = childArray_13[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.subscriptExpressionList = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_14 = childArray; _b < childArray_14.length; _b++) {
+                var child = childArray_14[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.subscriptExpressionListable = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_15 = childArray; _b < childArray_15.length; _b++) {
+                var child = childArray_15[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.stringLiteral = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_16 = childArray; _b < childArray_16.length; _b++) {
+                var child = childArray_16[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.arraySlice = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_17 = childArray; _b < childArray_17.length; _b++) {
+                var child = childArray_17[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.scriptExpression = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_18 = childArray; _b < childArray_18.length; _b++) {
+                var child = childArray_18[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    DebugVisitor.prototype.filterExpression = function (ctx) {
+        // eslint-disable-next-line no-console
+        console.log(util_1.inspect(ctx, { colors: true }));
+        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
+            var childArray = _a[_i];
+            for (var _b = 0, childArray_19 = childArray; _b < childArray_19.length; _b++) {
+                var child = childArray_19[_b];
+                if (util_2.isNode(child)) {
+                    this.visit(child);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.log(util_1.inspect(child, { colors: true }));
+                }
+            }
+        }
+    };
+    return DebugVisitor;
+}(BaseVisitor));
+exports.DebugVisitor = DebugVisitor;
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports) {
+
+module.exports = require("util");
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var underscore_1 = __importDefault(__webpack_require__(0));
+var static_eval_1 = __importDefault(__webpack_require__(11));
+var esprima_1 = __webpack_require__(5);
+var lexer_1 = __webpack_require__(2);
+var parser_1 = __webpack_require__(1);
+var util_1 = __webpack_require__(6);
+var BaseVisitor = parser_1.parser.getBaseCstVisitorConstructor();
+var EvalVisitor = /** @class */ (function (_super) {
+    __extends(EvalVisitor, _super);
+    function EvalVisitor() {
+        var _this = _super.call(this) || this;
+        _this.validateVisitor();
+        return _this;
+    }
+    EvalVisitor.prototype.jsonpath = function (ctx, scope) {
+        if (!ctx.dollar) {
+            for (var _i = 0, _a = ctx.leadingChildMemberExpression; _i < _a.length; _i++) {
+                var child = _a[_i];
+                if (!util_1.isNode(child)) {
+                    continue;
+                }
+                scope = this.visit(child, scope).filter(function (m) { return typeof m.value === 'object'; });
+            }
+        }
+        for (var _b = 0, scope_1 = scope; _b < scope_1.length; _b++) {
+            var match = scope_1[_b];
+            match.path.push('$');
+        }
+        if (!ctx.pathComponents) {
+            return scope;
+        }
+        var result = scope;
+        for (var _c = 0, _d = ctx.pathComponents; _c < _d.length; _c++) {
+            var component = _d[_c];
+            if (!util_1.isNode(component)) {
+                continue;
+            }
+            result = this.visit(component, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.pathComponents = function (ctx, scope) {
+        var result = scope;
+        for (var _i = 0, _a = ctx.pathComponent; _i < _a.length; _i++) {
+            var component = _a[_i];
+            if (!util_1.isNode(component)) {
+                continue;
+            }
+            result = this.visit(component, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.pathComponent = function (ctx, scope) {
+        var result = scope;
+        var component = ctx.subscriptComponent || ctx.memberComponent;
+        for (var _i = 0, component_1 = component; _i < component_1.length; _i++) {
+            var element = component_1[_i];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.memberComponent = function (ctx, scope) {
+        var result = scope;
+        var component = ctx.descendantMemberComponent || ctx.childMemberComponent;
+        for (var _i = 0, component_2 = component; _i < component_2.length; _i++) {
+            var element = component_2[_i];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.descendantMemberComponent = function (ctx, scope) {
+        var newScope = underscore_1.default.clone(scope);
+        for (var i = 0; i < newScope.length; i++) {
+            var obj = newScope[i].value;
+            for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
+                var prop = _a[_i];
+                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+            }
+        }
+        var result = newScope;
+        for (var _b = 0, _c = ctx.memberExpression; _b < _c.length; _b++) {
+            var element = _c[_b];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.childMemberComponent = function (ctx, scope) {
+        var result = scope;
+        for (var _i = 0, _a = ctx.memberExpression; _i < _a.length; _i++) {
+            var element = _a[_i];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.leadingChildMemberExpression = function (ctx, scope) {
+        var result = scope;
+        for (var _i = 0, _a = ctx.memberExpression; _i < _a.length; _i++) {
+            var element = _a[_i];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.memberExpression = function (ctx, scope) {
+        var key;
+        var token;
+        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
+            var prop = _a[_i];
+            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
+                var node = ctx[prop][0];
+                return this.visit(node, scope);
+            }
+            key = prop;
+            for (var _b = 0, _c = ctx[prop]; _b < _c.length; _b++) {
+                var child = _c[_b];
+                token = child;
+            }
+        }
+        var result = [];
+        switch (key) {
+            case 'asterisk':
+                var _loop_1 = function (match) {
+                    for (var _i = 0, _a = underscore_1.default.allKeys(match.value).filter(function (p) { return match.value[p] !== undefined; }); _i < _a.length; _i++) {
+                        var prop = _a[_i];
+                        if (lexer_1.integer_pattern.test(prop)) {
+                            var num = Number(prop);
+                            result.push({ path: match.path.concat(num), value: match.value[num] });
+                        }
+                        else {
+                            result.push({ path: match.path.concat(prop), value: match.value[prop] });
+                        }
+                    }
+                };
+                for (var _d = 0, scope_2 = scope; _d < scope_2.length; _d++) {
+                    var match = scope_2[_d];
+                    _loop_1(match);
+                }
+                break;
+            case 'integer':
+                for (var _e = 0, scope_3 = scope; _e < scope_3.length; _e++) {
+                    var match = scope_3[_e];
+                    if (match.value[Number(token.image)] !== undefined) {
+                        result.push({ path: match.path.concat(Number(token.image)), value: match.value[token.image] });
+                    }
+                }
+                break;
+            case 'identifier':
+                for (var _f = 0, scope_4 = scope; _f < scope_4.length; _f++) {
+                    var match = scope_4[_f];
+                    if (match.value[token.image] !== undefined) {
+                        result.push({ path: match.path.concat(token.image), value: match.value[token.image] });
+                    }
+                }
+                break;
+        }
+        return result;
+    };
+    EvalVisitor.prototype.subscriptComponent = function (ctx, scope) {
+        var result = scope;
+        var component = ctx.descendantSubscriptComponent || ctx.childSubscriptComponent;
+        for (var _i = 0, component_3 = component; _i < component_3.length; _i++) {
+            var element = component_3[_i];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.childSubscriptComponent = function (ctx, scope) {
+        var result = scope;
+        for (var _i = 0, _a = ctx.subscript; _i < _a.length; _i++) {
+            var element = _a[_i];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.descendantSubscriptComponent = function (ctx, scope) {
+        var newScope = underscore_1.default.clone(scope);
+        for (var i = 0; i < newScope.length; i++) {
+            var obj = newScope[i].value;
+            for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
+                var prop = _a[_i];
+                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+            }
+        }
+        var result = newScope;
+        for (var _b = 0, _c = ctx.subscript; _b < _c.length; _b++) {
+            var element = _c[_b];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.subscript = function (ctx, scope) {
+        var result = scope;
+        var component = ctx.subscriptExpression || ctx.subscriptExpressionList;
+        for (var _i = 0, component_4 = component; _i < component_4.length; _i++) {
+            var element = component_4[_i];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.subscriptExpression = function (ctx, scope) {
+        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
+            var prop = _a[_i];
+            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
+                var node = ctx[prop][0];
+                return this.visit(node, scope);
+            }
+        }
+        //asterisk
+        var result = [];
+        var _loop_2 = function (match) {
+            for (var _i = 0, _a = underscore_1.default.allKeys(match.value).filter(function (p) { return match.value[p] !== undefined; }); _i < _a.length; _i++) {
+                var prop = _a[_i];
+                if (lexer_1.integer_pattern.test(prop)) {
+                    var num = Number(prop);
+                    result.push({ path: match.path.concat(num), value: match.value[num] });
+                }
+                else {
+                    result.push({ path: match.path.concat(prop), value: match.value[prop] });
+                }
+            }
+        };
+        for (var _b = 0, scope_5 = scope; _b < scope_5.length; _b++) {
+            var match = scope_5[_b];
+            _loop_2(match);
+        }
+        return result;
+    };
+    EvalVisitor.prototype.subscriptExpressionList = function (ctx, scope) {
+        var result = [];
+        for (var _i = 0, _a = ctx.subscriptExpressionListable; _i < _a.length; _i++) {
+            var element = _a[_i];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = result.concat(this.visit(element, scope));
+        }
+        return result;
+    };
+    EvalVisitor.prototype.subscriptExpressionListable = function (ctx, scope) {
+        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
+            var prop = _a[_i];
+            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
+                var node = ctx[prop][0];
+                return this.visit(node, scope);
+            }
+        }
+        //integer
+        var token = ctx.integer[0];
+        var result = [];
+        var idx = Number(token.image);
+        for (var _b = 0, scope_6 = scope; _b < scope_6.length; _b++) {
+            var match = scope_6[_b];
+            if (match.value[idx] !== undefined) {
+                result.push({ path: match.path.concat(idx), value: match.value[idx] });
+            }
+        }
+        return result;
+    };
+    EvalVisitor.prototype.stringLiteral = function (ctx, scope) {
+        var result = [];
+        var component = ctx.quoted_string_double || ctx.quoted_string_single;
+        for (var _i = 0, component_5 = component; _i < component_5.length; _i++) {
+            var element = component_5[_i];
+            if (util_1.isNode(element)) {
+                continue;
+            }
+            var str = element.image.substr(1, element.image.length - 2);
+            for (var _a = 0, scope_7 = scope; _a < scope_7.length; _a++) {
+                var match = scope_7[_a];
+                if (match.value[str] !== undefined) {
+                    result.push({ path: match.path.concat(str), value: match.value[str] });
+                }
+            }
+        }
+        return result;
+    };
+    EvalVisitor.prototype.arraySlice = function (ctx, scope) {
+        var result = [];
+        if (!ctx.integer.length) {
+            for (var _i = 0, scope_8 = scope; _i < scope_8.length; _i++) {
+                var match = scope_8[_i];
+                if (Array.isArray(match.value)) {
+                    result.push(match);
+                }
+            }
+        }
+        if (result.length) {
+            return result;
+        }
+        var integers = ctx.integer;
+        var colons = ctx.colon;
+        var start = null;
+        var end = null;
+        var step = null;
+        if (integers[0].startOffset > colons[0].startOffset) {
+            end = Number(integers[0].image);
+            if (integers.length > 1) {
+                step = Number(integers[1].image);
+            }
+        }
+        else {
+            start = Number(integers[0].image);
+            if (integers.length > 1) {
+                if (colons.length > 1 && integers[1].startOffset > colons[1].startOffset) {
+                    step = Number(integers[1].image);
+                }
+                else {
+                    end = Number(integers[1].image);
+                    if (integers.length > 2) {
+                        step = Number(integers[2].image);
+                    }
+                }
+            }
+        }
+        for (var _a = 0, scope_9 = scope; _a < scope_9.length; _a++) {
+            var match = scope_9[_a];
+            if (Array.isArray(match.value)) {
+                result.push({ path: match.path, value: slice(match.value, start, end, step) });
+            }
+        }
+        return result;
+    };
+    EvalVisitor.prototype.scriptExpression = function (ctx, scope) {
+        var script = ctx.script_expression[0].image;
+        var ast = esprima_1.parseScript(script, {}).body[0].expression;
+        var parser = new parser_1.JSONPathParser();
+        var result = [];
+        for (var _i = 0, scope_10 = scope; _i < scope_10.length; _i++) {
+            var match = scope_10[_i];
+            try {
+                var text = '[' + static_eval_1.default(ast, { '@': match.value }) + ']';
+                var lexResult = lexer_1.lexer.tokenize(text);
+                parser.input = lexResult.tokens;
+                var res = this.visit(parser.childSubscriptComponent(), [match]);
+                if (res && res.length) {
+                    result = result.concat(res);
+                }
+            }
+            catch (_a) { }
+        }
+        return result;
+    };
+    EvalVisitor.prototype.filterExpression = function (ctx, scope) {
+        var script = ctx.script_expression[0].image;
+        var ast = esprima_1.parseScript(script, {}).body[0].expression;
+        var result = [];
+        for (var _i = 0, scope_11 = scope; _i < scope_11.length; _i++) {
+            var match = scope_11[_i];
+            try {
+                if (static_eval_1.default(ast, { '@': match.value })) {
+                    result.push(match);
+                }
+            }
+            catch (err) {
+                console.warn(script, err);
+            }
+        }
+        return result;
+    };
+    return EvalVisitor;
+}(BaseVisitor));
+exports.EvalVisitor = EvalVisitor;
+function slice(array, start, end, step) {
+    var result = [];
+    var len = array.length;
+    if (step === 0) {
+        throw new Error('step cannot be zero');
+    }
+    if (step === null) {
+        step = 1;
+    }
+    start = (start !== null && start < 0) ? len + start : start;
+    end = (end !== null && end < 0) ? len + end : end;
+    start = Number(start === 0 ? 0 : !start ? (step > 0 ? 0 : len - 1) : start);
+    end = Number(end === 0 ? 0 : !end ? (step > 0 ? len : -1) : end);
+    start = step > 0 ? Math.max(0, start) : Math.min(len, start);
+    end = step > 0 ? Math.min(end, len) : Math.max(-1, end);
+    if (step > 0 && end <= start) {
+        return result;
+    }
+    if (step < 0 && start <= end) {
+        return result;
+    }
+    for (var i = start; i !== end; i += step) {
+        if ((step < 0 && i <= end) || (step > 0 && i >= end)) {
+            break;
+        }
+        result.push(array[i]);
+    }
+    return result;
+}
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
+module.exports = require("static-eval");
 
 /***/ })
 /******/ ]);

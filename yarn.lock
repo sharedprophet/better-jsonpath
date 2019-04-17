@@ -2683,7 +2683,7 @@ ret@~0.1.10:
 
 rimraf@2.6.3, rimraf@^2.5.4, rimraf@^2.6.1, rimraf@^2.6.2:
   version "2.6.3"
-  resolved "https://artifactory.corp.apexcapitalcorp.com:443/api/npm/npm-virtual/rimraf/-/rimraf-2.6.3.tgz#b2d104fe0d8fb27cf9e0a1cda8262dd3833c6cab"
+  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.3.tgz#b2d104fe0d8fb27cf9e0a1cda8262dd3833c6cab"
   integrity sha1-stEE/g2Psnz54KHNqCYt04M8bKs=
   dependencies:
     glob "^7.1.3"
@@ -3070,7 +3070,7 @@ tar@^4:
 
 terser-webpack-plugin@1.2.3, terser-webpack-plugin@^1.1.0:
   version "1.2.3"
-  resolved "https://artifactory.corp.apexcapitalcorp.com:443/api/npm/npm-virtual/terser-webpack-plugin/-/terser-webpack-plugin-1.2.3.tgz#3f98bc902fac3e5d0de730869f50668561262ec8"
+  resolved "https://registry.yarnpkg.com/terser-webpack-plugin/-/terser-webpack-plugin-1.2.3.tgz#3f98bc902fac3e5d0de730869f50668561262ec8"
   integrity sha1-P5i8kC+sPl0N5zCGn1BmhWEmLsg=
   dependencies:
     cacache "^11.0.2"
@@ -3155,7 +3155,7 @@ to-regex@^3.0.1, to-regex@^3.0.2:
 
 ts-loader@^5.3.3:
   version "5.3.3"
-  resolved "https://artifactory.corp.apexcapitalcorp.com:443/api/npm/npm-virtual/ts-loader/-/ts-loader-5.3.3.tgz#8b4af042e773132d86b3c99ef0acf3b4d325f473"
+  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-5.3.3.tgz#8b4af042e773132d86b3c99ef0acf3b4d325f473"
   integrity sha1-i0rwQudzEy2Gs8me8KzztNMl9HM=
   dependencies:
     chalk "^2.3.0"
@@ -3335,14 +3335,14 @@ webpack-cli@3.3.0:
 
 webpack-merge@^4.2.1:
   version "4.2.1"
-  resolved "https://artifactory.corp.apexcapitalcorp.com:443/api/npm/npm-virtual/webpack-merge/-/webpack-merge-4.2.1.tgz#5e923cf802ea2ace4fd5af1d3247368a633489b4"
+  resolved "https://registry.yarnpkg.com/webpack-merge/-/webpack-merge-4.2.1.tgz#5e923cf802ea2ace4fd5af1d3247368a633489b4"
   integrity sha1-XpI8+ALqKs5P1a8dMkc2imM0ibQ=
   dependencies:
     lodash "^4.17.5"
 
 webpack-node-externals@1.7.2:
   version "1.7.2"
-  resolved "https://artifactory.corp.apexcapitalcorp.com:443/api/npm/npm-virtual/webpack-node-externals/-/webpack-node-externals-1.7.2.tgz#6e1ee79ac67c070402ba700ef033a9b8d52ac4e3"
+  resolved "https://registry.yarnpkg.com/webpack-node-externals/-/webpack-node-externals-1.7.2.tgz#6e1ee79ac67c070402ba700ef033a9b8d52ac4e3"
   integrity sha1-bh7nmsZ8BwQCunAO8DOpuNUqxOM=
 
 webpack-sources@^1.1.0, webpack-sources@^1.3.0:
@@ -3355,7 +3355,7 @@ webpack-sources@^1.1.0, webpack-sources@^1.3.0:
 
 webpack@^4.30.0:
   version "4.30.0"
-  resolved "https://artifactory.corp.apexcapitalcorp.com:443/api/npm/npm-virtual/webpack/-/webpack-4.30.0.tgz#aca76ef75630a22c49fcc235b39b4c57591d33a9"
+  resolved "https://registry.yarnpkg.com/webpack/-/webpack-4.30.0.tgz#aca76ef75630a22c49fcc235b39b4c57591d33a9"
   integrity sha1-rKdu91YwoixJ/MI1s5tMV1kdM6k=
   dependencies:
     "@webassemblyjs/ast" "1.8.5"
