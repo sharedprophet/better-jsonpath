@@ -45,6 +45,6 @@ module.exports = [
 			'index': helpers.root('index.ts'),
 			'index.min': helpers.root('index.ts')
 		},
-		output: { libraryTarget: 'commonjs' }
+		output: { libraryTarget: 'commonjs2' }
 	})
 ];

@@ -1,4 +1,5 @@
-(function(e, a) { for(var i in a) e[i] = a[i]; }(exports, /******/ (function(modules) { // webpackBootstrap
+module.exports =
+/******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -7890,5 +7891,5 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ })
-/******/ ])));
+/******/ ]);
 //# sourceMappingURL=index.js.map
