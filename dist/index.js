@@ -135,6 +135,7 @@ var JSONPathParser = /** @class */ (function (_super) {
         _this.pathComponents = _this.RULE('pathComponents', function () { return _this.AT_LEAST_ONE(function () { return _this.SUBRULE(_this.pathComponent); }); });
         _this.pathComponent = _this.RULE('pathComponent', function () { return _this.OR([
             { ALT: function () { return _this.SUBRULE(_this.subscriptComponent); } },
+            { ALT: function () { return _this.SUBRULE(_this.descendantSubscriptComponent); } },
             { ALT: function () { return _this.SUBRULE(_this.memberComponent); } }
         ]); });
         _this.memberComponent = _this.RULE('memberComponent', function () { return _this.OR([
@@ -145,28 +146,21 @@ var JSONPathParser = /** @class */ (function (_super) {
             _this.CONSUME(lexer_1.dot_dot);
             _this.SUBRULE(_this.memberExpression);
         });
+        _this.descendantSubscriptComponent = _this.RULE('descendantSubscriptComponent', function () {
+            _this.CONSUME(lexer_1.dot_dot);
+            _this.SUBRULE(_this.subscriptComponent);
+        });
         _this.childMemberComponent = _this.RULE('childMemberComponent', function () {
             _this.CONSUME(lexer_1.dot);
             _this.SUBRULE(_this.memberExpression);
         });
         _this.leadingChildMemberExpression = _this.RULE('leadingChildMemberExpression', function () { return _this.SUBRULE(_this.memberExpression); });
         _this.memberExpression = _this.RULE('memberExpression', function () { return _this.OR([
-            { ALT: function () { return _this.CONSUME(lexer_1.asterisk); } },
+            { ALT: function () { return _this.SUBRULE(_this.subscriptExpression); } },
             { ALT: function () { return _this.CONSUME(lexer_1.identifier); } },
-            { ALT: function () { return _this.SUBRULE(_this.scriptExpression); } },
             { ALT: function () { return _this.CONSUME(lexer_1.integer); } }
         ]); });
-        _this.subscriptComponent = _this.RULE('subscriptComponent', function () { return _this.OR([
-            { ALT: function () { return _this.SUBRULE(_this.descendantSubscriptComponent); } },
-            { ALT: function () { return _this.SUBRULE(_this.childSubscriptComponent); } }
-        ]); });
-        _this.childSubscriptComponent = _this.RULE('childSubscriptComponent', function () {
-            _this.CONSUME(lexer_1.square_brace_open);
-            _this.SUBRULE(_this.subscript);
-            _this.CONSUME(lexer_1.square_brace_close);
-        });
-        _this.descendantSubscriptComponent = _this.RULE('descendantSubscriptComponent', function () {
-            _this.CONSUME(lexer_1.dot_dot);
+        _this.subscriptComponent = _this.RULE('subscriptComponent', function () {
             _this.CONSUME(lexer_1.square_brace_open);
             _this.SUBRULE(_this.subscript);
             _this.CONSUME(lexer_1.square_brace_close);
@@ -7577,6 +7571,25 @@ var EvalVisitor = /** @class */ (function (_super) {
         }
         return result;
     };
+    EvalVisitor.prototype.descendantSubscriptComponent = function (ctx, scope) {
+        var newScope = underscore_1.default.clone(scope);
+        for (var i = 0; i < newScope.length; i++) {
+            var obj = newScope[i].value;
+            for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
+                var prop = _a[_i];
+                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+            }
+        }
+        var result = newScope;
+        for (var _b = 0, _c = ctx.subscriptComponent; _b < _c.length; _b++) {
+            var element = _c[_b];
+            if (!util_1.isNode(element)) {
+                continue;
+            }
+            result = this.visit(element, result);
+        }
+        return result;
+    };
     EvalVisitor.prototype.childMemberComponent = function (ctx, scope) {
         var result = scope;
         for (var _i = 0, _a = ctx.memberExpression; _i < _a.length; _i++) {
@@ -7616,35 +7629,17 @@ var EvalVisitor = /** @class */ (function (_super) {
         }
         var result = [];
         switch (key) {
-            case 'asterisk':
-                var _loop_1 = function (match) {
-                    for (var _i = 0, _a = underscore_1.default.allKeys(match.value).filter(function (p) { return match.value[p] !== undefined; }); _i < _a.length; _i++) {
-                        var prop = _a[_i];
-                        if (lexer_1.integer_pattern.test(prop)) {
-                            var num = Number(prop);
-                            result.push({ path: match.path.concat(num), value: match.value[num] });
-                        }
-                        else {
-                            result.push({ path: match.path.concat(prop), value: match.value[prop] });
-                        }
-                    }
-                };
+            case 'integer':
                 for (var _d = 0, scope_2 = scope; _d < scope_2.length; _d++) {
                     var match = scope_2[_d];
-                    _loop_1(match);
-                }
-                break;
-            case 'integer':
-                for (var _e = 0, scope_3 = scope; _e < scope_3.length; _e++) {
-                    var match = scope_3[_e];
                     if (match.value[Number(token.image)] !== undefined) {
                         result.push({ path: match.path.concat(Number(token.image)), value: match.value[token.image] });
                     }
                 }
                 break;
             case 'identifier':
-                for (var _f = 0, scope_4 = scope; _f < scope_4.length; _f++) {
-                    var match = scope_4[_f];
+                for (var _e = 0, scope_3 = scope; _e < scope_3.length; _e++) {
+                    var match = scope_3[_e];
                     if (match.value[token.image] !== undefined) {
                         result.push({ path: match.path.concat(token.image), value: match.value[token.image] });
                     }
@@ -7655,39 +7650,8 @@ var EvalVisitor = /** @class */ (function (_super) {
     };
     EvalVisitor.prototype.subscriptComponent = function (ctx, scope) {
         var result = scope;
-        var component = ctx.descendantSubscriptComponent || ctx.childSubscriptComponent;
-        for (var _i = 0, component_3 = component; _i < component_3.length; _i++) {
-            var element = component_3[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.childSubscriptComponent = function (ctx, scope) {
-        var result = scope;
         for (var _i = 0, _a = ctx.subscript; _i < _a.length; _i++) {
             var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
-            }
-            result = this.visit(element, result);
-        }
-        return result;
-    };
-    EvalVisitor.prototype.descendantSubscriptComponent = function (ctx, scope) {
-        var newScope = underscore_1.default.clone(scope);
-        for (var i = 0; i < newScope.length; i++) {
-            var obj = newScope[i].value;
-            for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
-                var prop = _a[_i];
-                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
-            }
-        }
-        var result = newScope;
-        for (var _b = 0, _c = ctx.subscript; _b < _c.length; _b++) {
-            var element = _c[_b];
             if (!util_1.isNode(element)) {
                 continue;
             }
@@ -7698,8 +7662,8 @@ var EvalVisitor = /** @class */ (function (_super) {
     EvalVisitor.prototype.subscript = function (ctx, scope) {
         var result = scope;
         var component = ctx.subscriptExpression || ctx.subscriptExpressionList;
-        for (var _i = 0, component_4 = component; _i < component_4.length; _i++) {
-            var element = component_4[_i];
+        for (var _i = 0, component_3 = component; _i < component_3.length; _i++) {
+            var element = component_3[_i];
             if (!util_1.isNode(element)) {
                 continue;
             }
@@ -7717,7 +7681,7 @@ var EvalVisitor = /** @class */ (function (_super) {
         }
         //asterisk
         var result = [];
-        var _loop_2 = function (match) {
+        var _loop_1 = function (match) {
             for (var _i = 0, _a = underscore_1.default.allKeys(match.value).filter(function (p) { return match.value[p] !== undefined; }); _i < _a.length; _i++) {
                 var prop = _a[_i];
                 if (lexer_1.integer_pattern.test(prop)) {
@@ -7729,9 +7693,9 @@ var EvalVisitor = /** @class */ (function (_super) {
                 }
             }
         };
-        for (var _b = 0, scope_5 = scope; _b < scope_5.length; _b++) {
-            var match = scope_5[_b];
-            _loop_2(match);
+        for (var _b = 0, scope_4 = scope; _b < scope_4.length; _b++) {
+            var match = scope_4[_b];
+            _loop_1(match);
         }
         return result;
     };
@@ -7758,8 +7722,8 @@ var EvalVisitor = /** @class */ (function (_super) {
         var token = ctx.integer[0];
         var result = [];
         var idx = Number(token.image);
-        for (var _b = 0, scope_6 = scope; _b < scope_6.length; _b++) {
-            var match = scope_6[_b];
+        for (var _b = 0, scope_5 = scope; _b < scope_5.length; _b++) {
+            var match = scope_5[_b];
             if (match.value[idx] !== undefined) {
                 result.push({ path: match.path.concat(idx), value: match.value[idx] });
             }
@@ -7769,14 +7733,14 @@ var EvalVisitor = /** @class */ (function (_super) {
     EvalVisitor.prototype.stringLiteral = function (ctx, scope) {
         var result = [];
         var component = ctx.quoted_string_double || ctx.quoted_string_single;
-        for (var _i = 0, component_5 = component; _i < component_5.length; _i++) {
-            var element = component_5[_i];
+        for (var _i = 0, component_4 = component; _i < component_4.length; _i++) {
+            var element = component_4[_i];
             if (util_1.isNode(element)) {
                 continue;
             }
             var str = element.image.substr(1, element.image.length - 2);
-            for (var _a = 0, scope_7 = scope; _a < scope_7.length; _a++) {
-                var match = scope_7[_a];
+            for (var _a = 0, scope_6 = scope; _a < scope_6.length; _a++) {
+                var match = scope_6[_a];
                 if (match.value[str] !== undefined) {
                     result.push({ path: match.path.concat(str), value: match.value[str] });
                 }
@@ -7787,8 +7751,8 @@ var EvalVisitor = /** @class */ (function (_super) {
     EvalVisitor.prototype.arraySlice = function (ctx, scope) {
         var result = [];
         if (!ctx.integer.length) {
-            for (var _i = 0, scope_8 = scope; _i < scope_8.length; _i++) {
-                var match = scope_8[_i];
+            for (var _i = 0, scope_7 = scope; _i < scope_7.length; _i++) {
+                var match = scope_7[_i];
                 if (Array.isArray(match.value)) {
                     result.push(match);
                 }
@@ -7822,8 +7786,8 @@ var EvalVisitor = /** @class */ (function (_super) {
                 }
             }
         }
-        for (var _a = 0, scope_9 = scope; _a < scope_9.length; _a++) {
-            var match = scope_9[_a];
+        for (var _a = 0, scope_8 = scope; _a < scope_8.length; _a++) {
+            var match = scope_8[_a];
             if (Array.isArray(match.value)) {
                 result.push({ path: match.path, value: slice(match.value, start, end, step) });
             }
@@ -7835,13 +7799,13 @@ var EvalVisitor = /** @class */ (function (_super) {
         var ast = esprima_1.parseScript(script, {}).body[0].expression;
         var parser = new parser_1.JSONPathParser();
         var result = [];
-        for (var _i = 0, scope_10 = scope; _i < scope_10.length; _i++) {
-            var match = scope_10[_i];
+        for (var _i = 0, scope_9 = scope; _i < scope_9.length; _i++) {
+            var match = scope_9[_i];
             try {
                 var text = '[' + static_eval_1.default(ast, { '@': match.value }) + ']';
                 var lexResult = lexer_1.lexer.tokenize(text);
                 parser.input = lexResult.tokens;
-                var res = this.visit(parser.childSubscriptComponent(), [match]);
+                var res = this.visit(parser.subscriptComponent(), [match]);
                 if (res && res.length) {
                     result = result.concat(res);
                 }
@@ -7854,8 +7818,8 @@ var EvalVisitor = /** @class */ (function (_super) {
         var script = ctx.script_expression[0].image;
         var ast = esprima_1.parseScript(script, {}).body[0].expression;
         var result = [];
-        for (var _i = 0, scope_11 = scope; _i < scope_11.length; _i++) {
-            var match = scope_11[_i];
+        for (var _i = 0, scope_10 = scope; _i < scope_10.length; _i++) {
+            var match = scope_10[_i];
             try {
                 if (static_eval_1.default(ast, { '@': match.value })) {
                     result.push(match);

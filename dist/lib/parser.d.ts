@@ -11,12 +11,11 @@ export declare class JSONPathParser extends Parser {
     pathComponent: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     memberComponent: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     descendantMemberComponent: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
+    descendantSubscriptComponent: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     childMemberComponent: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     leadingChildMemberExpression: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     memberExpression: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     subscriptComponent: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
-    childSubscriptComponent: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
-    descendantSubscriptComponent: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     subscript: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     subscriptExpression: (idxInCallingRule?: number | undefined, ...args: any[]) => any;
     subscriptExpressionList: (idxInCallingRule?: number | undefined, ...args: any[]) => any;

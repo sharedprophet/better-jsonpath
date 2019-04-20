@@ -53,6 +53,7 @@ export class JSONPathParser extends Parser {
 
 	pathComponent = this.RULE('pathComponent', () => this.OR([
 		{ ALT: () => this.SUBRULE(this.subscriptComponent) },
+		{ ALT: () => this.SUBRULE(this.descendantSubscriptComponent) },
 		{ ALT: () => this.SUBRULE(this.memberComponent) }
 	]));
 
@@ -66,6 +67,11 @@ export class JSONPathParser extends Parser {
 		this.SUBRULE(this.memberExpression);
 	});
 
+	descendantSubscriptComponent = this.RULE('descendantSubscriptComponent', () => {
+		this.CONSUME(dot_dot);
+		this.SUBRULE(this.subscriptComponent);
+	});
+
 	childMemberComponent = this.RULE('childMemberComponent', () => {
 		this.CONSUME(dot);
 		this.SUBRULE(this.memberExpression);
@@ -74,25 +80,12 @@ export class JSONPathParser extends Parser {
 	leadingChildMemberExpression = this.RULE('leadingChildMemberExpression', () => this.SUBRULE(this.memberExpression));
 
 	memberExpression = this.RULE('memberExpression', () => this.OR([
-		{ ALT: () => this.CONSUME(asterisk) },
+		{ ALT: () => this.SUBRULE(this.subscriptExpression) },
 		{ ALT: () => this.CONSUME(identifier) },
-		{ ALT: () => this.SUBRULE(this.scriptExpression) },
 		{ ALT: () => this.CONSUME(integer) }
 	]));
 
-	subscriptComponent = this.RULE('subscriptComponent', () => this.OR([
-		{ ALT: () => this.SUBRULE(this.descendantSubscriptComponent) },
-		{ ALT: () => this.SUBRULE(this.childSubscriptComponent) }
-	]));
-
-	childSubscriptComponent = this.RULE('childSubscriptComponent', () => {
-		this.CONSUME(square_brace_open);
-		this.SUBRULE(this.subscript);
-		this.CONSUME(square_brace_close);
-	});
-
-	descendantSubscriptComponent = this.RULE('descendantSubscriptComponent', () => {
-		this.CONSUME(dot_dot);
+	subscriptComponent = this.RULE('subscriptComponent', () => {
 		this.CONSUME(square_brace_open);
 		this.SUBRULE(this.subscript);
 		this.CONSUME(square_brace_close);

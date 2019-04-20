@@ -94,6 +94,24 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
+	descendantSubscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+		let newScope = _.clone(scope);
+		for (let i = 0; i < newScope.length; i++) {
+			let obj = newScope[i].value;
+			for (let prop of _.allKeys(obj)) {
+				newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+			}
+		}
+		let result = newScope;
+		for (let element of ctx.subscriptComponent) {
+			if (!isNode(element)) {
+				continue;
+			}
+			result = this.visit(element, result);
+		}
+		return result;
+	}
+
 	childMemberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
 		let result = scope;
 		for (let element of ctx.memberExpression) {
@@ -131,18 +149,6 @@ export class EvalVisitor extends BaseVisitor {
 		}
 		let result: Match[] = [];
 		switch (key) {
-			case 'asterisk':
-				for (let match of scope) {
-					for (let prop of _.allKeys(match.value).filter(p => match.value[p] !== undefined)) {
-						if (integer_pattern.test(prop)) {
-							let num = Number(prop);
-							result.push({ path: match.path.concat(num), value: match.value[num] });
-						} else {
-							result.push({ path: match.path.concat(prop), value: match.value[prop] });
-						}
-					}
-				}
-				break;
 			case 'integer':
 				for (let match of scope) {
 					if (match.value[Number(token.image)] !== undefined) {
@@ -163,36 +169,6 @@ export class EvalVisitor extends BaseVisitor {
 
 	subscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
 		let result = scope;
-		let component = ctx.descendantSubscriptComponent || ctx.childSubscriptComponent;
-		for (let element of component) {
-			if (!isNode(element)) {
-				continue;
-			}
-			result = this.visit(element, result);
-		}
-		return result;
-	}
-
-	childSubscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
-		let result = scope;
-		for (let element of ctx.subscript) {
-			if (!isNode(element)) {
-				continue;
-			}
-			result = this.visit(element, result);
-		}
-		return result;
-	}
-
-	descendantSubscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
-		let newScope = _.clone(scope);
-		for (let i = 0; i < newScope.length; i++) {
-			let obj = newScope[i].value;
-			for (let prop of _.allKeys(obj)) {
-				newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
-			}
-		}
-		let result = newScope;
 		for (let element of ctx.subscript) {
 			if (!isNode(element)) {
 				continue;
@@ -336,7 +312,7 @@ export class EvalVisitor extends BaseVisitor {
 				let text = '[' + evaluate(ast, { '@': match.value }) + ']';
 				let lexResult = lexer.tokenize(text);
 				parser.input = lexResult.tokens;
-				let res = this.visit(parser.childSubscriptComponent(), [match]);
+				let res = this.visit(parser.subscriptComponent(), [match]);
 				if (res && res.length) {
 					result = result.concat(res);
 				}

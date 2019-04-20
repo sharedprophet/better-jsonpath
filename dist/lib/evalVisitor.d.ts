@@ -8,12 +8,11 @@ export declare class EvalVisitor extends BaseVisitor {
     pathComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     memberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     descendantMemberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
+    descendantSubscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     childMemberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     leadingChildMemberExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     memberExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     subscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    childSubscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    descendantSubscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     subscript(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     subscriptExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[];
     subscriptExpressionList(ctx: CstChildrenDictionary, scope: Match[]): Match[];
