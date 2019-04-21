@@ -7530,7 +7530,7 @@ var EvalVisitor = /** @class */ (function (_super) {
     };
     EvalVisitor.prototype.pathComponent = function (ctx, scope) {
         var result = scope;
-        var component = ctx.subscriptComponent || ctx.memberComponent;
+        var component = ctx.subscriptComponent || ctx.descendantSubscriptComponent || ctx.memberComponent;
         for (var _i = 0, component_1 = component; _i < component_1.length; _i++) {
             var element = component_1[_i];
             if (!util_1.isNode(element)) {

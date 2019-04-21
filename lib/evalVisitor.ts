@@ -54,7 +54,7 @@ export class EvalVisitor extends BaseVisitor {
 
 	pathComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
 		let result = scope;
-		let component = ctx.subscriptComponent || ctx.memberComponent;
+		let component = ctx.subscriptComponent || ctx.descendantSubscriptComponent || ctx.memberComponent;
 		for (let element of component) {
 			if (!isNode(element)) {
 				continue;
