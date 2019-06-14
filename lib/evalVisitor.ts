@@ -330,9 +330,7 @@ export class EvalVisitor extends BaseVisitor {
 				if (evaluate(ast, { '@': match.value })) {
 					result.push(match);
 				}
-			} catch (err) {
-				console.warn(script, err);
-			}
+			} catch { }
 		}
 		return result;
 	}
