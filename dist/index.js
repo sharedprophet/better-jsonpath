@@ -7825,9 +7825,7 @@ var EvalVisitor = /** @class */ (function (_super) {
                     result.push(match);
                 }
             }
-            catch (err) {
-                console.warn(script, err);
-            }
+            catch (_a) { }
         }
         return result;
     };
