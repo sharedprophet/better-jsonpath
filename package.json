@@ -23,7 +23,7 @@
 		"@types/underscore": "^1.8.14",
 		"@typescript-eslint/eslint-plugin": "^1.6.0",
 		"@typescript-eslint/parser": "^1.6.0",
-		"eslint": "^5.16.0",
+		"eslint": "^6.0.1",
 		"rimraf": "2.6.3",
 		"terser-webpack-plugin": "1.2.3",
 		"ts-loader": "^5.3.3",
