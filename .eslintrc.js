@@ -42,7 +42,6 @@ module.exports = {
 			ignoreTemplateLiterals: true,
 			ignoreRegExpLiterals: true
 		}],
-		'@typescript-eslint/class-name-casing': 'error',
 		'@typescript-eslint/no-unused-vars': ['error', { args: 'none' }],
 		'@typescript-eslint/indent': ['error', 'tab', {
 			SwitchCase: 1,
