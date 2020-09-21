@@ -101,7 +101,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -110,10 +110,31 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spread = (this && this.__spread) || function () {
+    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+    return ar;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parser = exports.JSONPathParser = void 0;
 var underscore_1 = __importDefault(__webpack_require__(0));
 var chevrotain_1 = __webpack_require__(4);
 var lexer_1 = __webpack_require__(2);
@@ -212,6 +233,33 @@ var JSONPathParser = /** @class */ (function (_super) {
         _this.performSelfAnalysis();
         return _this;
     }
+    JSONPathParser.prototype.autocomplete = function (text) {
+        var lexResult = lexer_1.lexer.tokenize(text);
+        var input = lexResult.tokens;
+        var options = this.computeContentAssist('jsonpath', input);
+        this.setInput(input);
+        var cst;
+        while (input.length && !cst) {
+            cst = this.jsonpath();
+            if (!cst) {
+                input = input.slice(0, input.length - 1);
+                this.setInput(input);
+            }
+        }
+        return {
+            options: options,
+            cst: cst,
+            lexErrors: lexResult.errors,
+            parseErrors: underscore_1.default.clone(this.errors)
+        };
+    };
+    JSONPathParser.prototype.setInput = function (input) {
+        var temp = __spread(input, [chevrotain_1.createTokenInstance(lexer_1.asterisk, '*', NaN, NaN, NaN, NaN, NaN, NaN)]);
+        if (input.length && input[input.length - 1].tokenType === lexer_1.square_brace_open) {
+            temp.push(chevrotain_1.createTokenInstance(lexer_1.square_brace_close, ']', NaN, NaN, NaN, NaN, NaN, NaN));
+        }
+        this.input = temp;
+    };
     JSONPathParser.prototype.parse = function (text) {
         var lexResult = lexer_1.lexer.tokenize(text);
         this.input = lexResult.tokens;
@@ -222,7 +270,7 @@ var JSONPathParser = /** @class */ (function (_super) {
         };
     };
     return JSONPathParser;
-}(chevrotain_1.Parser));
+}(chevrotain_1.CstParser));
 exports.JSONPathParser = JSONPathParser;
 exports.parser = new JSONPathParser();
 
@@ -237,20 +285,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.lexer = exports.allTokens = exports.script_expression = exports.quoted_string_single = exports.quoted_string_double = exports.identifier = exports.integer = exports.integer_pattern = exports.asterisk = exports.colon = exports.comma = exports.question_mark = exports.paren_close = exports.paren_open = exports.square_brace_close = exports.square_brace_open = exports.dot = exports.dot_dot = exports.dollar = void 0;
 var underscore_1 = __importDefault(__webpack_require__(0));
 var chevrotain_1 = __webpack_require__(4);
 var esprima_1 = __webpack_require__(5);
-exports.dollar = chevrotain_1.createToken({ name: 'dollar', pattern: /\$/ });
-exports.dot_dot = chevrotain_1.createToken({ name: 'dot_dot', pattern: /\.\./ });
-exports.dot = chevrotain_1.createToken({ name: 'dot', pattern: /\./, longer_alt: exports.dot_dot });
-exports.square_brace_open = chevrotain_1.createToken({ name: 'square_brace_open', pattern: /\[/ });
-exports.square_brace_close = chevrotain_1.createToken({ name: 'square_brace_close', pattern: /\]/ });
-exports.paren_open = chevrotain_1.createToken({ name: 'paren_open', pattern: /\(/ });
-exports.paren_close = chevrotain_1.createToken({ name: 'paren_close', pattern: /\)/ });
-exports.question_mark = chevrotain_1.createToken({ name: 'question_mark', pattern: /\?/ });
-exports.comma = chevrotain_1.createToken({ name: 'comma', pattern: /,/ });
-exports.colon = chevrotain_1.createToken({ name: 'colon', pattern: /:/ });
-exports.asterisk = chevrotain_1.createToken({ name: 'asterisk', pattern: /\*/ });
+exports.dollar = chevrotain_1.createToken({ name: 'dollar', pattern: /\$/, label: '$' });
+exports.dot_dot = chevrotain_1.createToken({ name: 'dot_dot', pattern: /\.\./, label: '..' });
+exports.dot = chevrotain_1.createToken({ name: 'dot', pattern: /\./, longer_alt: exports.dot_dot, label: '.' });
+exports.square_brace_open = chevrotain_1.createToken({ name: 'square_brace_open', pattern: /\[/, label: '[' });
+exports.square_brace_close = chevrotain_1.createToken({ name: 'square_brace_close', pattern: /\]/, label: ']' });
+exports.paren_open = chevrotain_1.createToken({ name: 'paren_open', pattern: /\(/, label: '(' });
+exports.paren_close = chevrotain_1.createToken({ name: 'paren_close', pattern: /\)/, label: ')' });
+exports.question_mark = chevrotain_1.createToken({ name: 'question_mark', pattern: /\?/, label: '?' });
+exports.comma = chevrotain_1.createToken({ name: 'comma', pattern: /,/, label: ',' });
+exports.colon = chevrotain_1.createToken({ name: 'colon', pattern: /:/, label: ':' });
+exports.asterisk = chevrotain_1.createToken({ name: 'asterisk', pattern: /\*/, label: '*' });
 exports.integer_pattern = /^-?(?:0|[1-9]\d*)$/;
 exports.integer = chevrotain_1.createToken({ name: 'integer', pattern: /-?(?:0|[1-9]\d*)/ });
 exports.identifier = chevrotain_1.createToken({ name: 'identifier', pattern: /[a-zA-Z_]+[a-zA-Z0-9_]*/ });
@@ -307,14 +356,22 @@ function matchScriptExpression(text, startOffset) {
 
 "use strict";
 
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-__export(__webpack_require__(8));
-__export(__webpack_require__(10));
-__export(__webpack_require__(2));
-__export(__webpack_require__(1));
+__exportStar(__webpack_require__(8), exports);
+__exportStar(__webpack_require__(10), exports);
+__exportStar(__webpack_require__(2), exports);
+__exportStar(__webpack_require__(12), exports);
+__exportStar(__webpack_require__(1), exports);
 
 
 /***/ }),
@@ -7039,6 +7096,7 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isNode = void 0;
 function isNode(element) {
     return !!element.name;
 }
@@ -7051,13 +7109,24 @@ exports.isNode = isNode;
 
 "use strict";
 
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+var underscore_1 = __importDefault(__webpack_require__(0));
 var lib_1 = __webpack_require__(3);
-__export(__webpack_require__(3));
-exports.default = { eval: evaluate };
+__exportStar(__webpack_require__(3), exports);
+exports.default = { eval: evaluate, autocomplete: autocomplete };
 var evalVisitor = new lib_1.EvalVisitor();
 function evaluate(jsonpath) {
     var objects = [];
@@ -7072,15 +7141,50 @@ function evaluate(jsonpath) {
     if (!cst) {
         return res;
     }
-    var result = [];
-    for (var _a = 0, objects_1 = objects; _a < objects_1.length; _a++) {
-        var obj = objects_1[_a];
-        result.push({
-            input: obj,
-            matches: evalVisitor.visit(cst, [{ path: [], value: obj }])
+    return evalVisitor.visit(cst, objects.map(function (obj) { return ({ input: obj, matches: [{ path: [], value: obj }] }); }));
+}
+var autocompleteEvalTokens = [
+    lib_1.identifier.name,
+    lib_1.integer.name,
+    lib_1.quoted_string_double.name,
+    lib_1.quoted_string_single.name
+];
+function autocomplete(jsonpath) {
+    var objects = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        objects[_i - 1] = arguments[_i];
+    }
+    if (!jsonpath || !objects || !objects.length) {
+        return new Set();
+    }
+    var res = lib_1.parser.autocomplete(jsonpath);
+    if (res.options && underscore_1.default.all(res.options, function (opt) { return autocompleteEvalTokens.indexOf(opt.nextTokenType.name) === -1; })) {
+        return new Set(res.options.filter(function (opt) { return !!opt.nextTokenType.LABEL; })
+            .map(function (opt) { return opt.nextTokenType.LABEL; }));
+    }
+    var cst = res.cst;
+    var matches = [];
+    if (cst) {
+        var quote_1 = res.options && underscore_1.default.any(res.options, function (opt) { return opt.nextTokenType.name === lib_1.quoted_string_single.name; });
+        matches = underscore_1.default.flatten(evalVisitor.visit(cst, objects.map(function (obj) { return ({ input: obj, matches: [{ path: [], value: obj }] }); }))
+            .map(function (r) { return r.matches; }))
+            .filter(function (m) { return m.path.length > 1; })
+            .map(function (m) {
+            var last = underscore_1.default.last(m.path);
+            if (!quote_1 || typeof (last) === 'number') {
+                return last;
+            }
+            return "'" + last + "'";
         });
     }
-    return result;
+    if (matches.length) {
+        return new Set(matches);
+    }
+    if (res.options) {
+        return new Set(res.options.filter(function (opt) { return !!opt.nextTokenType.LABEL; })
+            .map(function (opt) { return opt.nextTokenType.LABEL; }));
+    }
+    return res;
 }
 
 
@@ -7094,7 +7198,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -7103,15 +7207,28 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DebugVisitor = void 0;
 var underscore_1 = __importDefault(__webpack_require__(0));
 var util_1 = __webpack_require__(9);
 var parser_1 = __webpack_require__(1);
 var util_2 = __webpack_require__(6);
 var BaseVisitor = parser_1.parser.getBaseCstVisitorConstructor();
+var debug = function (thing) { return util_1.inspect(thing, { colors: true, depth: 100 }); };
 var DebugVisitor = /** @class */ (function (_super) {
     __extends(DebugVisitor, _super);
     function DebugVisitor() {
@@ -7120,326 +7237,651 @@ var DebugVisitor = /** @class */ (function (_super) {
         return _this;
     }
     DebugVisitor.prototype.jsonpath = function (ctx) {
+        var e_1, _a, e_2, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_1 = childArray; _b < childArray_1.length; _b++) {
-                var child = childArray_1[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_1 = (e_2 = void 0, __values(childArray)), childArray_1_1 = childArray_1.next(); !childArray_1_1.done; childArray_1_1 = childArray_1.next()) {
+                        var child = childArray_1_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                finally {
+                    try {
+                        if (childArray_1_1 && !childArray_1_1.done && (_b = childArray_1.return)) _b.call(childArray_1);
+                    }
+                    finally { if (e_2) throw e_2.error; }
                 }
             }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_1) throw e_1.error; }
         }
     };
     DebugVisitor.prototype.pathComponents = function (ctx) {
+        var e_3, _a, e_4, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_2 = childArray; _b < childArray_2.length; _b++) {
-                var child = childArray_2[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_2 = (e_4 = void 0, __values(childArray)), childArray_2_1 = childArray_2.next(); !childArray_2_1.done; childArray_2_1 = childArray_2.next()) {
+                        var child = childArray_2_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_4_1) { e_4 = { error: e_4_1 }; }
+                finally {
+                    try {
+                        if (childArray_2_1 && !childArray_2_1.done && (_b = childArray_2.return)) _b.call(childArray_2);
+                    }
+                    finally { if (e_4) throw e_4.error; }
                 }
             }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_3) throw e_3.error; }
         }
     };
     DebugVisitor.prototype.pathComponent = function (ctx) {
+        var e_5, _a, e_6, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_3 = childArray; _b < childArray_3.length; _b++) {
-                var child = childArray_3[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_3 = (e_6 = void 0, __values(childArray)), childArray_3_1 = childArray_3.next(); !childArray_3_1.done; childArray_3_1 = childArray_3.next()) {
+                        var child = childArray_3_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_6_1) { e_6 = { error: e_6_1 }; }
+                finally {
+                    try {
+                        if (childArray_3_1 && !childArray_3_1.done && (_b = childArray_3.return)) _b.call(childArray_3);
+                    }
+                    finally { if (e_6) throw e_6.error; }
                 }
             }
+        }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_5) throw e_5.error; }
         }
     };
     DebugVisitor.prototype.memberComponent = function (ctx) {
+        var e_7, _a, e_8, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_4 = childArray; _b < childArray_4.length; _b++) {
-                var child = childArray_4[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_4 = (e_8 = void 0, __values(childArray)), childArray_4_1 = childArray_4.next(); !childArray_4_1.done; childArray_4_1 = childArray_4.next()) {
+                        var child = childArray_4_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_8_1) { e_8 = { error: e_8_1 }; }
+                finally {
+                    try {
+                        if (childArray_4_1 && !childArray_4_1.done && (_b = childArray_4.return)) _b.call(childArray_4);
+                    }
+                    finally { if (e_8) throw e_8.error; }
                 }
             }
+        }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_7) throw e_7.error; }
         }
     };
     DebugVisitor.prototype.descendantMemberComponent = function (ctx) {
+        var e_9, _a, e_10, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_5 = childArray; _b < childArray_5.length; _b++) {
-                var child = childArray_5[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_5 = (e_10 = void 0, __values(childArray)), childArray_5_1 = childArray_5.next(); !childArray_5_1.done; childArray_5_1 = childArray_5.next()) {
+                        var child = childArray_5_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_10_1) { e_10 = { error: e_10_1 }; }
+                finally {
+                    try {
+                        if (childArray_5_1 && !childArray_5_1.done && (_b = childArray_5.return)) _b.call(childArray_5);
+                    }
+                    finally { if (e_10) throw e_10.error; }
                 }
             }
+        }
+        catch (e_9_1) { e_9 = { error: e_9_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_9) throw e_9.error; }
         }
     };
     DebugVisitor.prototype.childMemberComponent = function (ctx) {
+        var e_11, _a, e_12, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_6 = childArray; _b < childArray_6.length; _b++) {
-                var child = childArray_6[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_6 = (e_12 = void 0, __values(childArray)), childArray_6_1 = childArray_6.next(); !childArray_6_1.done; childArray_6_1 = childArray_6.next()) {
+                        var child = childArray_6_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_12_1) { e_12 = { error: e_12_1 }; }
+                finally {
+                    try {
+                        if (childArray_6_1 && !childArray_6_1.done && (_b = childArray_6.return)) _b.call(childArray_6);
+                    }
+                    finally { if (e_12) throw e_12.error; }
                 }
             }
+        }
+        catch (e_11_1) { e_11 = { error: e_11_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_11) throw e_11.error; }
         }
     };
     DebugVisitor.prototype.leadingChildMemberExpression = function (ctx) {
+        var e_13, _a, e_14, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_7 = childArray; _b < childArray_7.length; _b++) {
-                var child = childArray_7[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_7 = (e_14 = void 0, __values(childArray)), childArray_7_1 = childArray_7.next(); !childArray_7_1.done; childArray_7_1 = childArray_7.next()) {
+                        var child = childArray_7_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_14_1) { e_14 = { error: e_14_1 }; }
+                finally {
+                    try {
+                        if (childArray_7_1 && !childArray_7_1.done && (_b = childArray_7.return)) _b.call(childArray_7);
+                    }
+                    finally { if (e_14) throw e_14.error; }
                 }
             }
+        }
+        catch (e_13_1) { e_13 = { error: e_13_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_13) throw e_13.error; }
         }
     };
     DebugVisitor.prototype.memberExpression = function (ctx) {
+        var e_15, _a, e_16, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_8 = childArray; _b < childArray_8.length; _b++) {
-                var child = childArray_8[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_8 = (e_16 = void 0, __values(childArray)), childArray_8_1 = childArray_8.next(); !childArray_8_1.done; childArray_8_1 = childArray_8.next()) {
+                        var child = childArray_8_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_16_1) { e_16 = { error: e_16_1 }; }
+                finally {
+                    try {
+                        if (childArray_8_1 && !childArray_8_1.done && (_b = childArray_8.return)) _b.call(childArray_8);
+                    }
+                    finally { if (e_16) throw e_16.error; }
                 }
             }
+        }
+        catch (e_15_1) { e_15 = { error: e_15_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_15) throw e_15.error; }
         }
     };
     DebugVisitor.prototype.subscriptComponent = function (ctx) {
+        var e_17, _a, e_18, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_9 = childArray; _b < childArray_9.length; _b++) {
-                var child = childArray_9[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_9 = (e_18 = void 0, __values(childArray)), childArray_9_1 = childArray_9.next(); !childArray_9_1.done; childArray_9_1 = childArray_9.next()) {
+                        var child = childArray_9_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_18_1) { e_18 = { error: e_18_1 }; }
+                finally {
+                    try {
+                        if (childArray_9_1 && !childArray_9_1.done && (_b = childArray_9.return)) _b.call(childArray_9);
+                    }
+                    finally { if (e_18) throw e_18.error; }
                 }
             }
         }
-    };
-    DebugVisitor.prototype.childSubscriptComponent = function (ctx) {
-        // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_10 = childArray; _b < childArray_10.length; _b++) {
-                var child = childArray_10[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
-                }
+        catch (e_17_1) { e_17 = { error: e_17_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
             }
+            finally { if (e_17) throw e_17.error; }
         }
     };
     DebugVisitor.prototype.descendantSubscriptComponent = function (ctx) {
+        var e_19, _a, e_20, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_11 = childArray; _b < childArray_11.length; _b++) {
-                var child = childArray_11[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_10 = (e_20 = void 0, __values(childArray)), childArray_10_1 = childArray_10.next(); !childArray_10_1.done; childArray_10_1 = childArray_10.next()) {
+                        var child = childArray_10_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_20_1) { e_20 = { error: e_20_1 }; }
+                finally {
+                    try {
+                        if (childArray_10_1 && !childArray_10_1.done && (_b = childArray_10.return)) _b.call(childArray_10);
+                    }
+                    finally { if (e_20) throw e_20.error; }
                 }
             }
+        }
+        catch (e_19_1) { e_19 = { error: e_19_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_19) throw e_19.error; }
         }
     };
     DebugVisitor.prototype.subscript = function (ctx) {
+        var e_21, _a, e_22, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_12 = childArray; _b < childArray_12.length; _b++) {
-                var child = childArray_12[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_11 = (e_22 = void 0, __values(childArray)), childArray_11_1 = childArray_11.next(); !childArray_11_1.done; childArray_11_1 = childArray_11.next()) {
+                        var child = childArray_11_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_22_1) { e_22 = { error: e_22_1 }; }
+                finally {
+                    try {
+                        if (childArray_11_1 && !childArray_11_1.done && (_b = childArray_11.return)) _b.call(childArray_11);
+                    }
+                    finally { if (e_22) throw e_22.error; }
                 }
             }
+        }
+        catch (e_21_1) { e_21 = { error: e_21_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_21) throw e_21.error; }
         }
     };
     DebugVisitor.prototype.subscriptExpression = function (ctx) {
+        var e_23, _a, e_24, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_13 = childArray; _b < childArray_13.length; _b++) {
-                var child = childArray_13[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_12 = (e_24 = void 0, __values(childArray)), childArray_12_1 = childArray_12.next(); !childArray_12_1.done; childArray_12_1 = childArray_12.next()) {
+                        var child = childArray_12_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_24_1) { e_24 = { error: e_24_1 }; }
+                finally {
+                    try {
+                        if (childArray_12_1 && !childArray_12_1.done && (_b = childArray_12.return)) _b.call(childArray_12);
+                    }
+                    finally { if (e_24) throw e_24.error; }
                 }
             }
+        }
+        catch (e_23_1) { e_23 = { error: e_23_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_23) throw e_23.error; }
         }
     };
     DebugVisitor.prototype.subscriptExpressionList = function (ctx) {
+        var e_25, _a, e_26, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_14 = childArray; _b < childArray_14.length; _b++) {
-                var child = childArray_14[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_13 = (e_26 = void 0, __values(childArray)), childArray_13_1 = childArray_13.next(); !childArray_13_1.done; childArray_13_1 = childArray_13.next()) {
+                        var child = childArray_13_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_26_1) { e_26 = { error: e_26_1 }; }
+                finally {
+                    try {
+                        if (childArray_13_1 && !childArray_13_1.done && (_b = childArray_13.return)) _b.call(childArray_13);
+                    }
+                    finally { if (e_26) throw e_26.error; }
                 }
             }
+        }
+        catch (e_25_1) { e_25 = { error: e_25_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_25) throw e_25.error; }
         }
     };
     DebugVisitor.prototype.subscriptExpressionListable = function (ctx) {
+        var e_27, _a, e_28, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_15 = childArray; _b < childArray_15.length; _b++) {
-                var child = childArray_15[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_14 = (e_28 = void 0, __values(childArray)), childArray_14_1 = childArray_14.next(); !childArray_14_1.done; childArray_14_1 = childArray_14.next()) {
+                        var child = childArray_14_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_28_1) { e_28 = { error: e_28_1 }; }
+                finally {
+                    try {
+                        if (childArray_14_1 && !childArray_14_1.done && (_b = childArray_14.return)) _b.call(childArray_14);
+                    }
+                    finally { if (e_28) throw e_28.error; }
                 }
             }
+        }
+        catch (e_27_1) { e_27 = { error: e_27_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_27) throw e_27.error; }
         }
     };
     DebugVisitor.prototype.stringLiteral = function (ctx) {
+        var e_29, _a, e_30, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_16 = childArray; _b < childArray_16.length; _b++) {
-                var child = childArray_16[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_15 = (e_30 = void 0, __values(childArray)), childArray_15_1 = childArray_15.next(); !childArray_15_1.done; childArray_15_1 = childArray_15.next()) {
+                        var child = childArray_15_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_30_1) { e_30 = { error: e_30_1 }; }
+                finally {
+                    try {
+                        if (childArray_15_1 && !childArray_15_1.done && (_b = childArray_15.return)) _b.call(childArray_15);
+                    }
+                    finally { if (e_30) throw e_30.error; }
                 }
             }
+        }
+        catch (e_29_1) { e_29 = { error: e_29_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_29) throw e_29.error; }
         }
     };
     DebugVisitor.prototype.arraySlice = function (ctx) {
+        var e_31, _a, e_32, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_17 = childArray; _b < childArray_17.length; _b++) {
-                var child = childArray_17[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_16 = (e_32 = void 0, __values(childArray)), childArray_16_1 = childArray_16.next(); !childArray_16_1.done; childArray_16_1 = childArray_16.next()) {
+                        var child = childArray_16_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_32_1) { e_32 = { error: e_32_1 }; }
+                finally {
+                    try {
+                        if (childArray_16_1 && !childArray_16_1.done && (_b = childArray_16.return)) _b.call(childArray_16);
+                    }
+                    finally { if (e_32) throw e_32.error; }
                 }
             }
+        }
+        catch (e_31_1) { e_31 = { error: e_31_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_31) throw e_31.error; }
         }
     };
     DebugVisitor.prototype.scriptExpression = function (ctx) {
+        var e_33, _a, e_34, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_18 = childArray; _b < childArray_18.length; _b++) {
-                var child = childArray_18[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_17 = (e_34 = void 0, __values(childArray)), childArray_17_1 = childArray_17.next(); !childArray_17_1.done; childArray_17_1 = childArray_17.next()) {
+                        var child = childArray_17_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_34_1) { e_34 = { error: e_34_1 }; }
+                finally {
+                    try {
+                        if (childArray_17_1 && !childArray_17_1.done && (_b = childArray_17.return)) _b.call(childArray_17);
+                    }
+                    finally { if (e_34) throw e_34.error; }
                 }
             }
         }
+        catch (e_33_1) { e_33 = { error: e_33_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_33) throw e_33.error; }
+        }
     };
     DebugVisitor.prototype.filterExpression = function (ctx) {
+        var e_35, _a, e_36, _b;
         // eslint-disable-next-line no-console
-        console.log(util_1.inspect(ctx, { colors: true }));
-        for (var _i = 0, _a = underscore_1.default.values(ctx); _i < _a.length; _i++) {
-            var childArray = _a[_i];
-            for (var _b = 0, childArray_19 = childArray; _b < childArray_19.length; _b++) {
-                var child = childArray_19[_b];
-                if (util_2.isNode(child)) {
-                    this.visit(child);
+        console.log(debug(ctx));
+        try {
+            for (var _c = __values(underscore_1.default.values(ctx)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var childArray = _d.value;
+                try {
+                    for (var childArray_18 = (e_36 = void 0, __values(childArray)), childArray_18_1 = childArray_18.next(); !childArray_18_1.done; childArray_18_1 = childArray_18.next()) {
+                        var child = childArray_18_1.value;
+                        if (util_2.isNode(child)) {
+                            this.visit(child);
+                        }
+                        else {
+                            // eslint-disable-next-line no-console
+                            console.log(debug(child));
+                        }
+                    }
                 }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.log(util_1.inspect(child, { colors: true }));
+                catch (e_36_1) { e_36 = { error: e_36_1 }; }
+                finally {
+                    try {
+                        if (childArray_18_1 && !childArray_18_1.done && (_b = childArray_18.return)) _b.call(childArray_18);
+                    }
+                    finally { if (e_36) throw e_36.error; }
                 }
             }
+        }
+        catch (e_35_1) { e_35 = { error: e_35_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_35) throw e_35.error; }
         }
     };
     return DebugVisitor;
@@ -7463,7 +7905,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -7472,10 +7914,33 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.EvalVisitor = void 0;
 var underscore_1 = __importDefault(__webpack_require__(0));
 var static_eval_1 = __importDefault(__webpack_require__(11));
 var esprima_1 = __webpack_require__(5);
@@ -7491,274 +7956,663 @@ var EvalVisitor = /** @class */ (function (_super) {
         return _this;
     }
     EvalVisitor.prototype.jsonpath = function (ctx, scope) {
+        var e_1, _a, e_2, _b, e_3, _c, e_4, _d;
+        var result = scope;
         if (!ctx.dollar) {
-            for (var _i = 0, _a = ctx.leadingChildMemberExpression; _i < _a.length; _i++) {
-                var child = _a[_i];
-                if (!util_1.isNode(child)) {
-                    continue;
+            try {
+                for (var _e = __values(ctx.leadingChildMemberExpression), _f = _e.next(); !_f.done; _f = _e.next()) {
+                    var child = _f.value;
+                    if (!util_1.isNode(child)) {
+                        continue;
+                    }
+                    result = this.visit(child, scope);
                 }
-                scope = this.visit(child, scope).filter(function (m) { return typeof m.value === 'object'; });
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_f && !_f.done && (_a = _e.return)) _a.call(_e);
+                }
+                finally { if (e_1) throw e_1.error; }
             }
         }
-        for (var _b = 0, scope_1 = scope; _b < scope_1.length; _b++) {
-            var match = scope_1[_b];
-            match.path.push('$');
+        try {
+            for (var result_1 = __values(result), result_1_1 = result_1.next(); !result_1_1.done; result_1_1 = result_1.next()) {
+                var res = result_1_1.value;
+                try {
+                    for (var _g = (e_3 = void 0, __values(res.matches)), _h = _g.next(); !_h.done; _h = _g.next()) {
+                        var match = _h.value;
+                        match.path.unshift('$');
+                    }
+                }
+                catch (e_3_1) { e_3 = { error: e_3_1 }; }
+                finally {
+                    try {
+                        if (_h && !_h.done && (_c = _g.return)) _c.call(_g);
+                    }
+                    finally { if (e_3) throw e_3.error; }
+                }
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (result_1_1 && !result_1_1.done && (_b = result_1.return)) _b.call(result_1);
+            }
+            finally { if (e_2) throw e_2.error; }
         }
         if (!ctx.pathComponents) {
-            return scope;
+            return result;
         }
-        var result = scope;
-        for (var _c = 0, _d = ctx.pathComponents; _c < _d.length; _c++) {
-            var component = _d[_c];
-            if (!util_1.isNode(component)) {
-                continue;
+        try {
+            for (var _j = __values(ctx.pathComponents), _k = _j.next(); !_k.done; _k = _j.next()) {
+                var component = _k.value;
+                if (!util_1.isNode(component)) {
+                    continue;
+                }
+                result = this.visit(component, result);
             }
-            result = this.visit(component, result);
+        }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        finally {
+            try {
+                if (_k && !_k.done && (_d = _j.return)) _d.call(_j);
+            }
+            finally { if (e_4) throw e_4.error; }
         }
         return result;
     };
     EvalVisitor.prototype.pathComponents = function (ctx, scope) {
+        var e_5, _a;
         var result = scope;
-        for (var _i = 0, _a = ctx.pathComponent; _i < _a.length; _i++) {
-            var component = _a[_i];
-            if (!util_1.isNode(component)) {
-                continue;
+        try {
+            for (var _b = __values(ctx.pathComponent), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var component = _c.value;
+                if (!util_1.isNode(component)) {
+                    continue;
+                }
+                result = this.visit(component, result);
             }
-            result = this.visit(component, result);
+        }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_5) throw e_5.error; }
         }
         return result;
     };
     EvalVisitor.prototype.pathComponent = function (ctx, scope) {
+        var e_6, _a;
         var result = scope;
         var component = ctx.subscriptComponent || ctx.descendantSubscriptComponent || ctx.memberComponent;
-        for (var _i = 0, component_1 = component; _i < component_1.length; _i++) {
-            var element = component_1[_i];
-            if (!util_1.isNode(element)) {
-                continue;
+        try {
+            for (var component_1 = __values(component), component_1_1 = component_1.next(); !component_1_1.done; component_1_1 = component_1.next()) {
+                var element = component_1_1.value;
+                if (!util_1.isNode(element)) {
+                    continue;
+                }
+                result = this.visit(element, result);
             }
-            result = this.visit(element, result);
+        }
+        catch (e_6_1) { e_6 = { error: e_6_1 }; }
+        finally {
+            try {
+                if (component_1_1 && !component_1_1.done && (_a = component_1.return)) _a.call(component_1);
+            }
+            finally { if (e_6) throw e_6.error; }
         }
         return result;
     };
     EvalVisitor.prototype.memberComponent = function (ctx, scope) {
+        var e_7, _a;
         var result = scope;
         var component = ctx.descendantMemberComponent || ctx.childMemberComponent;
-        for (var _i = 0, component_2 = component; _i < component_2.length; _i++) {
-            var element = component_2[_i];
-            if (!util_1.isNode(element)) {
-                continue;
+        try {
+            for (var component_2 = __values(component), component_2_1 = component_2.next(); !component_2_1.done; component_2_1 = component_2.next()) {
+                var element = component_2_1.value;
+                if (!util_1.isNode(element)) {
+                    continue;
+                }
+                result = this.visit(element, result);
             }
-            result = this.visit(element, result);
+        }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        finally {
+            try {
+                if (component_2_1 && !component_2_1.done && (_a = component_2.return)) _a.call(component_2);
+            }
+            finally { if (e_7) throw e_7.error; }
         }
         return result;
     };
     EvalVisitor.prototype.descendantMemberComponent = function (ctx, scope) {
-        var newScope = underscore_1.default.clone(scope);
-        for (var i = 0; i < newScope.length; i++) {
-            var obj = newScope[i].value;
-            for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
-                var prop = _a[_i];
-                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+        var e_8, _a, e_9, _b, e_10, _c;
+        var result = scope;
+        try {
+            for (var result_2 = __values(result), result_2_1 = result_2.next(); !result_2_1.done; result_2_1 = result_2.next()) {
+                var res = result_2_1.value;
+                var newScope = underscore_1.default.clone(res.matches);
+                for (var i = 0; i < newScope.length; i++) {
+                    var obj = newScope[i].value;
+                    try {
+                        for (var _d = (e_9 = void 0, __values(underscore_1.default.allKeys(obj))), _e = _d.next(); !_e.done; _e = _d.next()) {
+                            var prop = _e.value;
+                            newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+                        }
+                    }
+                    catch (e_9_1) { e_9 = { error: e_9_1 }; }
+                    finally {
+                        try {
+                            if (_e && !_e.done && (_b = _d.return)) _b.call(_d);
+                        }
+                        finally { if (e_9) throw e_9.error; }
+                    }
+                }
+                res.matches = newScope;
             }
         }
-        var result = newScope;
-        for (var _b = 0, _c = ctx.memberExpression; _b < _c.length; _b++) {
-            var element = _c[_b];
-            if (!util_1.isNode(element)) {
-                continue;
+        catch (e_8_1) { e_8 = { error: e_8_1 }; }
+        finally {
+            try {
+                if (result_2_1 && !result_2_1.done && (_a = result_2.return)) _a.call(result_2);
             }
-            result = this.visit(element, result);
+            finally { if (e_8) throw e_8.error; }
+        }
+        try {
+            for (var _f = __values(ctx.memberExpression), _g = _f.next(); !_g.done; _g = _f.next()) {
+                var element = _g.value;
+                if (!util_1.isNode(element)) {
+                    continue;
+                }
+                result = this.visit(element, result);
+            }
+        }
+        catch (e_10_1) { e_10 = { error: e_10_1 }; }
+        finally {
+            try {
+                if (_g && !_g.done && (_c = _f.return)) _c.call(_f);
+            }
+            finally { if (e_10) throw e_10.error; }
         }
         return result;
     };
     EvalVisitor.prototype.descendantSubscriptComponent = function (ctx, scope) {
-        var newScope = underscore_1.default.clone(scope);
-        for (var i = 0; i < newScope.length; i++) {
-            var obj = newScope[i].value;
-            for (var _i = 0, _a = underscore_1.default.allKeys(obj); _i < _a.length; _i++) {
-                var prop = _a[_i];
-                newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+        var e_11, _a, e_12, _b, e_13, _c;
+        var result = scope;
+        try {
+            for (var result_3 = __values(result), result_3_1 = result_3.next(); !result_3_1.done; result_3_1 = result_3.next()) {
+                var res = result_3_1.value;
+                var newScope = underscore_1.default.clone(res.matches);
+                for (var i = 0; i < newScope.length; i++) {
+                    var obj = newScope[i].value;
+                    try {
+                        for (var _d = (e_12 = void 0, __values(underscore_1.default.allKeys(obj))), _e = _d.next(); !_e.done; _e = _d.next()) {
+                            var prop = _e.value;
+                            newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+                        }
+                    }
+                    catch (e_12_1) { e_12 = { error: e_12_1 }; }
+                    finally {
+                        try {
+                            if (_e && !_e.done && (_b = _d.return)) _b.call(_d);
+                        }
+                        finally { if (e_12) throw e_12.error; }
+                    }
+                }
+                res.matches = newScope;
             }
         }
-        var result = newScope;
-        for (var _b = 0, _c = ctx.subscriptComponent; _b < _c.length; _b++) {
-            var element = _c[_b];
-            if (!util_1.isNode(element)) {
-                continue;
+        catch (e_11_1) { e_11 = { error: e_11_1 }; }
+        finally {
+            try {
+                if (result_3_1 && !result_3_1.done && (_a = result_3.return)) _a.call(result_3);
             }
-            result = this.visit(element, result);
+            finally { if (e_11) throw e_11.error; }
+        }
+        try {
+            for (var _f = __values(ctx.subscriptComponent), _g = _f.next(); !_g.done; _g = _f.next()) {
+                var element = _g.value;
+                if (!util_1.isNode(element)) {
+                    continue;
+                }
+                result = this.visit(element, result);
+            }
+        }
+        catch (e_13_1) { e_13 = { error: e_13_1 }; }
+        finally {
+            try {
+                if (_g && !_g.done && (_c = _f.return)) _c.call(_f);
+            }
+            finally { if (e_13) throw e_13.error; }
         }
         return result;
     };
     EvalVisitor.prototype.childMemberComponent = function (ctx, scope) {
+        var e_14, _a;
         var result = scope;
-        for (var _i = 0, _a = ctx.memberExpression; _i < _a.length; _i++) {
-            var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
+        try {
+            for (var _b = __values(ctx.memberExpression), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var element = _c.value;
+                if (!util_1.isNode(element)) {
+                    continue;
+                }
+                result = this.visit(element, result);
             }
-            result = this.visit(element, result);
+        }
+        catch (e_14_1) { e_14 = { error: e_14_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_14) throw e_14.error; }
         }
         return result;
     };
     EvalVisitor.prototype.leadingChildMemberExpression = function (ctx, scope) {
+        var e_15, _a;
         var result = scope;
-        for (var _i = 0, _a = ctx.memberExpression; _i < _a.length; _i++) {
-            var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
+        try {
+            for (var _b = __values(ctx.memberExpression), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var element = _c.value;
+                if (!util_1.isNode(element)) {
+                    continue;
+                }
+                result = this.visit(element, result);
             }
-            result = this.visit(element, result);
+        }
+        catch (e_15_1) { e_15 = { error: e_15_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_15) throw e_15.error; }
         }
         return result;
     };
     EvalVisitor.prototype.memberExpression = function (ctx, scope) {
+        var e_16, _a, e_17, _b, e_18, _c, e_19, _d, e_20, _e;
         var key;
         var token;
-        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
-            var prop = _a[_i];
-            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
-                var node = ctx[prop][0];
-                return this.visit(node, scope);
-            }
-            key = prop;
-            for (var _b = 0, _c = ctx[prop]; _b < _c.length; _b++) {
-                var child = _c[_b];
-                token = child;
+        try {
+            for (var _f = __values(underscore_1.default.allKeys(ctx)), _g = _f.next(); !_g.done; _g = _f.next()) {
+                var prop = _g.value;
+                if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
+                    var node = ctx[prop][0];
+                    return this.visit(node, scope);
+                }
+                key = prop;
+                try {
+                    for (var _h = (e_17 = void 0, __values(ctx[prop])), _j = _h.next(); !_j.done; _j = _h.next()) {
+                        var child = _j.value;
+                        token = child;
+                    }
+                }
+                catch (e_17_1) { e_17 = { error: e_17_1 }; }
+                finally {
+                    try {
+                        if (_j && !_j.done && (_b = _h.return)) _b.call(_h);
+                    }
+                    finally { if (e_17) throw e_17.error; }
+                }
             }
         }
-        var result = [];
-        switch (key) {
-            case 'integer':
-                for (var _d = 0, scope_2 = scope; _d < scope_2.length; _d++) {
-                    var match = scope_2[_d];
-                    if (match.value[Number(token.image)] !== undefined) {
-                        result.push({ path: match.path.concat(Number(token.image)), value: match.value[token.image] });
-                    }
+        catch (e_16_1) { e_16 = { error: e_16_1 }; }
+        finally {
+            try {
+                if (_g && !_g.done && (_a = _f.return)) _a.call(_f);
+            }
+            finally { if (e_16) throw e_16.error; }
+        }
+        var result = scope;
+        try {
+            for (var result_4 = __values(result), result_4_1 = result_4.next(); !result_4_1.done; result_4_1 = result_4.next()) {
+                var res = result_4_1.value;
+                var matches = res.matches;
+                res.matches = [];
+                switch (key) {
+                    case 'integer':
+                        try {
+                            for (var matches_1 = (e_19 = void 0, __values(matches)), matches_1_1 = matches_1.next(); !matches_1_1.done; matches_1_1 = matches_1.next()) {
+                                var match = matches_1_1.value;
+                                if (match.value[Number(token.image)] !== undefined) {
+                                    res.matches.push({
+                                        path: match.path.concat(Number(token.image)),
+                                        value: match.value[token.image]
+                                    });
+                                }
+                            }
+                        }
+                        catch (e_19_1) { e_19 = { error: e_19_1 }; }
+                        finally {
+                            try {
+                                if (matches_1_1 && !matches_1_1.done && (_d = matches_1.return)) _d.call(matches_1);
+                            }
+                            finally { if (e_19) throw e_19.error; }
+                        }
+                        break;
+                    case 'identifier':
+                        try {
+                            for (var matches_2 = (e_20 = void 0, __values(matches)), matches_2_1 = matches_2.next(); !matches_2_1.done; matches_2_1 = matches_2.next()) {
+                                var match = matches_2_1.value;
+                                if (match.value[token.image] !== undefined) {
+                                    res.matches.push({
+                                        path: match.path.concat(token.image),
+                                        value: match.value[token.image]
+                                    });
+                                }
+                            }
+                        }
+                        catch (e_20_1) { e_20 = { error: e_20_1 }; }
+                        finally {
+                            try {
+                                if (matches_2_1 && !matches_2_1.done && (_e = matches_2.return)) _e.call(matches_2);
+                            }
+                            finally { if (e_20) throw e_20.error; }
+                        }
+                        break;
                 }
-                break;
-            case 'identifier':
-                for (var _e = 0, scope_3 = scope; _e < scope_3.length; _e++) {
-                    var match = scope_3[_e];
-                    if (match.value[token.image] !== undefined) {
-                        result.push({ path: match.path.concat(token.image), value: match.value[token.image] });
-                    }
-                }
-                break;
+            }
+        }
+        catch (e_18_1) { e_18 = { error: e_18_1 }; }
+        finally {
+            try {
+                if (result_4_1 && !result_4_1.done && (_c = result_4.return)) _c.call(result_4);
+            }
+            finally { if (e_18) throw e_18.error; }
         }
         return result;
     };
     EvalVisitor.prototype.subscriptComponent = function (ctx, scope) {
+        var e_21, _a;
         var result = scope;
-        for (var _i = 0, _a = ctx.subscript; _i < _a.length; _i++) {
-            var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
+        try {
+            for (var _b = __values(ctx.subscript), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var element = _c.value;
+                if (!util_1.isNode(element)) {
+                    continue;
+                }
+                result = this.visit(element, result);
             }
-            result = this.visit(element, result);
+        }
+        catch (e_21_1) { e_21 = { error: e_21_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_21) throw e_21.error; }
         }
         return result;
     };
     EvalVisitor.prototype.subscript = function (ctx, scope) {
+        var e_22, _a;
         var result = scope;
         var component = ctx.subscriptExpression || ctx.subscriptExpressionList;
-        for (var _i = 0, component_3 = component; _i < component_3.length; _i++) {
-            var element = component_3[_i];
-            if (!util_1.isNode(element)) {
-                continue;
+        try {
+            for (var component_3 = __values(component), component_3_1 = component_3.next(); !component_3_1.done; component_3_1 = component_3.next()) {
+                var element = component_3_1.value;
+                if (!util_1.isNode(element)) {
+                    continue;
+                }
+                result = this.visit(element, result);
             }
-            result = this.visit(element, result);
+        }
+        catch (e_22_1) { e_22 = { error: e_22_1 }; }
+        finally {
+            try {
+                if (component_3_1 && !component_3_1.done && (_a = component_3.return)) _a.call(component_3);
+            }
+            finally { if (e_22) throw e_22.error; }
         }
         return result;
     };
     EvalVisitor.prototype.subscriptExpression = function (ctx, scope) {
-        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
-            var prop = _a[_i];
-            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
-                var node = ctx[prop][0];
-                return this.visit(node, scope);
+        var e_23, _a, e_24, _b, e_25, _c;
+        try {
+            for (var _d = __values(underscore_1.default.allKeys(ctx)), _e = _d.next(); !_e.done; _e = _d.next()) {
+                var prop = _e.value;
+                if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
+                    var node = ctx[prop][0];
+                    return this.visit(node, scope);
+                }
             }
         }
+        catch (e_23_1) { e_23 = { error: e_23_1 }; }
+        finally {
+            try {
+                if (_e && !_e.done && (_a = _d.return)) _a.call(_d);
+            }
+            finally { if (e_23) throw e_23.error; }
+        }
         //asterisk
-        var result = [];
-        var _loop_1 = function (match) {
-            for (var _i = 0, _a = underscore_1.default.allKeys(match.value).filter(function (p) { return match.value[p] !== undefined; }); _i < _a.length; _i++) {
-                var prop = _a[_i];
-                if (lexer_1.integer_pattern.test(prop)) {
-                    var num = Number(prop);
-                    result.push({ path: match.path.concat(num), value: match.value[num] });
+        var result = scope;
+        try {
+            for (var result_5 = __values(result), result_5_1 = result_5.next(); !result_5_1.done; result_5_1 = result_5.next()) {
+                var res = result_5_1.value;
+                var matches = res.matches;
+                res.matches = [];
+                var _loop_1 = function (match) {
+                    var e_26, _a;
+                    try {
+                        for (var _b = (e_26 = void 0, __values(underscore_1.default.allKeys(match.value).filter(function (p) { return match.value[p] !== undefined; }))), _c = _b.next(); !_c.done; _c = _b.next()) {
+                            var prop = _c.value;
+                            if (lexer_1.integer_pattern.test(prop)) {
+                                var num = Number(prop);
+                                res.matches.push({ path: match.path.concat(num), value: match.value[num] });
+                            }
+                            else {
+                                res.matches.push({ path: match.path.concat(prop), value: match.value[prop] });
+                            }
+                        }
+                    }
+                    catch (e_26_1) { e_26 = { error: e_26_1 }; }
+                    finally {
+                        try {
+                            if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                        }
+                        finally { if (e_26) throw e_26.error; }
+                    }
+                };
+                try {
+                    for (var matches_3 = (e_25 = void 0, __values(matches)), matches_3_1 = matches_3.next(); !matches_3_1.done; matches_3_1 = matches_3.next()) {
+                        var match = matches_3_1.value;
+                        _loop_1(match);
+                    }
                 }
-                else {
-                    result.push({ path: match.path.concat(prop), value: match.value[prop] });
+                catch (e_25_1) { e_25 = { error: e_25_1 }; }
+                finally {
+                    try {
+                        if (matches_3_1 && !matches_3_1.done && (_c = matches_3.return)) _c.call(matches_3);
+                    }
+                    finally { if (e_25) throw e_25.error; }
                 }
             }
-        };
-        for (var _b = 0, scope_4 = scope; _b < scope_4.length; _b++) {
-            var match = scope_4[_b];
-            _loop_1(match);
+        }
+        catch (e_24_1) { e_24 = { error: e_24_1 }; }
+        finally {
+            try {
+                if (result_5_1 && !result_5_1.done && (_b = result_5.return)) _b.call(result_5);
+            }
+            finally { if (e_24) throw e_24.error; }
         }
         return result;
     };
     EvalVisitor.prototype.subscriptExpressionList = function (ctx, scope) {
-        var result = [];
-        for (var _i = 0, _a = ctx.subscriptExpressionListable; _i < _a.length; _i++) {
-            var element = _a[_i];
-            if (!util_1.isNode(element)) {
-                continue;
+        var e_27, _a, e_28, _b;
+        var result = scope;
+        try {
+            for (var result_6 = __values(result), result_6_1 = result_6.next(); !result_6_1.done; result_6_1 = result_6.next()) {
+                var res = result_6_1.value;
+                var matches = res.matches;
+                res.matches = [];
+                try {
+                    for (var _c = (e_28 = void 0, __values(ctx.subscriptExpressionListable)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                        var element = _d.value;
+                        if (!util_1.isNode(element)) {
+                            continue;
+                        }
+                        res.matches = res.matches.concat(underscore_1.default.flatten(this.visit(element, [__assign(__assign({}, res), { matches: matches })]).map(function (r) { return r.matches; })));
+                    }
+                }
+                catch (e_28_1) { e_28 = { error: e_28_1 }; }
+                finally {
+                    try {
+                        if (_d && !_d.done && (_b = _c.return)) _b.call(_c);
+                    }
+                    finally { if (e_28) throw e_28.error; }
+                }
             }
-            result = result.concat(this.visit(element, scope));
+        }
+        catch (e_27_1) { e_27 = { error: e_27_1 }; }
+        finally {
+            try {
+                if (result_6_1 && !result_6_1.done && (_a = result_6.return)) _a.call(result_6);
+            }
+            finally { if (e_27) throw e_27.error; }
         }
         return result;
     };
     EvalVisitor.prototype.subscriptExpressionListable = function (ctx, scope) {
-        for (var _i = 0, _a = underscore_1.default.allKeys(ctx); _i < _a.length; _i++) {
-            var prop = _a[_i];
-            if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
-                var node = ctx[prop][0];
-                return this.visit(node, scope);
+        var e_29, _a, e_30, _b, e_31, _c;
+        try {
+            for (var _d = __values(underscore_1.default.allKeys(ctx)), _e = _d.next(); !_e.done; _e = _d.next()) {
+                var prop = _e.value;
+                if (ctx[prop] && util_1.isNode(ctx[prop][0])) {
+                    var node = ctx[prop][0];
+                    return this.visit(node, scope);
+                }
             }
+        }
+        catch (e_29_1) { e_29 = { error: e_29_1 }; }
+        finally {
+            try {
+                if (_e && !_e.done && (_a = _d.return)) _a.call(_d);
+            }
+            finally { if (e_29) throw e_29.error; }
         }
         //integer
         var token = ctx.integer[0];
-        var result = [];
+        var result = scope;
         var idx = Number(token.image);
-        for (var _b = 0, scope_5 = scope; _b < scope_5.length; _b++) {
-            var match = scope_5[_b];
-            if (match.value[idx] !== undefined) {
-                result.push({ path: match.path.concat(idx), value: match.value[idx] });
+        try {
+            for (var result_7 = __values(result), result_7_1 = result_7.next(); !result_7_1.done; result_7_1 = result_7.next()) {
+                var res = result_7_1.value;
+                var matches = res.matches;
+                res.matches = [];
+                try {
+                    for (var matches_4 = (e_31 = void 0, __values(matches)), matches_4_1 = matches_4.next(); !matches_4_1.done; matches_4_1 = matches_4.next()) {
+                        var match = matches_4_1.value;
+                        if (match.value[idx] !== undefined) {
+                            res.matches.push({ path: match.path.concat(idx), value: match.value[idx] });
+                        }
+                    }
+                }
+                catch (e_31_1) { e_31 = { error: e_31_1 }; }
+                finally {
+                    try {
+                        if (matches_4_1 && !matches_4_1.done && (_c = matches_4.return)) _c.call(matches_4);
+                    }
+                    finally { if (e_31) throw e_31.error; }
+                }
             }
+        }
+        catch (e_30_1) { e_30 = { error: e_30_1 }; }
+        finally {
+            try {
+                if (result_7_1 && !result_7_1.done && (_b = result_7.return)) _b.call(result_7);
+            }
+            finally { if (e_30) throw e_30.error; }
         }
         return result;
     };
     EvalVisitor.prototype.stringLiteral = function (ctx, scope) {
-        var result = [];
+        var e_32, _a, e_33, _b, e_34, _c;
+        var result = scope;
         var component = ctx.quoted_string_double || ctx.quoted_string_single;
-        for (var _i = 0, component_4 = component; _i < component_4.length; _i++) {
-            var element = component_4[_i];
-            if (util_1.isNode(element)) {
-                continue;
-            }
-            var str = element.image.substr(1, element.image.length - 2);
-            for (var _a = 0, scope_6 = scope; _a < scope_6.length; _a++) {
-                var match = scope_6[_a];
-                if (match.value[str] !== undefined) {
-                    result.push({ path: match.path.concat(str), value: match.value[str] });
+        try {
+            for (var component_4 = __values(component), component_4_1 = component_4.next(); !component_4_1.done; component_4_1 = component_4.next()) {
+                var element = component_4_1.value;
+                if (util_1.isNode(element)) {
+                    continue;
+                }
+                var str = element.image.substr(1, element.image.length - 2);
+                try {
+                    for (var result_8 = (e_33 = void 0, __values(result)), result_8_1 = result_8.next(); !result_8_1.done; result_8_1 = result_8.next()) {
+                        var res = result_8_1.value;
+                        var matches = res.matches;
+                        res.matches = [];
+                        try {
+                            for (var matches_5 = (e_34 = void 0, __values(matches)), matches_5_1 = matches_5.next(); !matches_5_1.done; matches_5_1 = matches_5.next()) {
+                                var match = matches_5_1.value;
+                                if (match.value[str] !== undefined) {
+                                    res.matches.push({ path: match.path.concat(str), value: match.value[str] });
+                                }
+                            }
+                        }
+                        catch (e_34_1) { e_34 = { error: e_34_1 }; }
+                        finally {
+                            try {
+                                if (matches_5_1 && !matches_5_1.done && (_c = matches_5.return)) _c.call(matches_5);
+                            }
+                            finally { if (e_34) throw e_34.error; }
+                        }
+                    }
+                }
+                catch (e_33_1) { e_33 = { error: e_33_1 }; }
+                finally {
+                    try {
+                        if (result_8_1 && !result_8_1.done && (_b = result_8.return)) _b.call(result_8);
+                    }
+                    finally { if (e_33) throw e_33.error; }
                 }
             }
+        }
+        catch (e_32_1) { e_32 = { error: e_32_1 }; }
+        finally {
+            try {
+                if (component_4_1 && !component_4_1.done && (_a = component_4.return)) _a.call(component_4);
+            }
+            finally { if (e_32) throw e_32.error; }
         }
         return result;
     };
     EvalVisitor.prototype.arraySlice = function (ctx, scope) {
+        var e_35, _a, e_36, _b, e_37, _c, e_38, _d;
+        var _e, _f;
         var result = [];
-        if (!ctx.integer.length) {
-            for (var _i = 0, scope_7 = scope; _i < scope_7.length; _i++) {
-                var match = scope_7[_i];
-                if (Array.isArray(match.value)) {
-                    result.push(match);
+        try {
+            for (var scope_1 = __values(scope), scope_1_1 = scope_1.next(); !scope_1_1.done; scope_1_1 = scope_1.next()) {
+                var r = scope_1_1.value;
+                var res = __assign(__assign({}, r), { matches: [] });
+                if (!((_e = ctx.integer) === null || _e === void 0 ? void 0 : _e.length)) {
+                    try {
+                        for (var _g = (e_36 = void 0, __values(r.matches)), _h = _g.next(); !_h.done; _h = _g.next()) {
+                            var match = _h.value;
+                            if (Array.isArray(match.value)) {
+                                res.matches.push(match);
+                            }
+                        }
+                    }
+                    catch (e_36_1) { e_36 = { error: e_36_1 }; }
+                    finally {
+                        try {
+                            if (_h && !_h.done && (_b = _g.return)) _b.call(_g);
+                        }
+                        finally { if (e_36) throw e_36.error; }
+                    }
                 }
+                result.push(res);
             }
         }
-        if (result.length) {
+        catch (e_35_1) { e_35 = { error: e_35_1 }; }
+        finally {
+            try {
+                if (scope_1_1 && !scope_1_1.done && (_a = scope_1.return)) _a.call(scope_1);
+            }
+            finally { if (e_35) throw e_35.error; }
+        }
+        if (!((_f = ctx.integer) === null || _f === void 0 ? void 0 : _f.length)) {
             return result;
         }
         var integers = ctx.integer;
@@ -7786,46 +8640,118 @@ var EvalVisitor = /** @class */ (function (_super) {
                 }
             }
         }
-        for (var _a = 0, scope_8 = scope; _a < scope_8.length; _a++) {
-            var match = scope_8[_a];
-            if (Array.isArray(match.value)) {
-                result.push({ path: match.path, value: slice(match.value, start, end, step) });
+        result = [];
+        try {
+            for (var scope_2 = __values(scope), scope_2_1 = scope_2.next(); !scope_2_1.done; scope_2_1 = scope_2.next()) {
+                var r = scope_2_1.value;
+                var res = __assign(__assign({}, r), { matches: [] });
+                try {
+                    for (var _j = (e_38 = void 0, __values(r.matches)), _k = _j.next(); !_k.done; _k = _j.next()) {
+                        var match = _k.value;
+                        if (Array.isArray(match.value)) {
+                            res.matches.push({ path: match.path, value: slice(match.value, start, end, step) });
+                        }
+                    }
+                }
+                catch (e_38_1) { e_38 = { error: e_38_1 }; }
+                finally {
+                    try {
+                        if (_k && !_k.done && (_d = _j.return)) _d.call(_j);
+                    }
+                    finally { if (e_38) throw e_38.error; }
+                }
+                result.push(res);
             }
+        }
+        catch (e_37_1) { e_37 = { error: e_37_1 }; }
+        finally {
+            try {
+                if (scope_2_1 && !scope_2_1.done && (_c = scope_2.return)) _c.call(scope_2);
+            }
+            finally { if (e_37) throw e_37.error; }
         }
         return result;
     };
     EvalVisitor.prototype.scriptExpression = function (ctx, scope) {
+        var e_39, _a, e_40, _b;
         var script = ctx.script_expression[0].image;
         var ast = esprima_1.parseScript(script, {}).body[0].expression;
         var parser = new parser_1.JSONPathParser();
-        var result = [];
-        for (var _i = 0, scope_9 = scope; _i < scope_9.length; _i++) {
-            var match = scope_9[_i];
-            try {
-                var text = '[' + static_eval_1.default(ast, { '@': match.value }) + ']';
-                var lexResult = lexer_1.lexer.tokenize(text);
-                parser.input = lexResult.tokens;
-                var res = this.visit(parser.subscriptComponent(), [match]);
-                if (res && res.length) {
-                    result = result.concat(res);
+        var result = scope;
+        try {
+            for (var result_9 = __values(result), result_9_1 = result_9.next(); !result_9_1.done; result_9_1 = result_9.next()) {
+                var r = result_9_1.value;
+                var matches = r.matches;
+                r.matches = [];
+                try {
+                    for (var matches_6 = (e_40 = void 0, __values(matches)), matches_6_1 = matches_6.next(); !matches_6_1.done; matches_6_1 = matches_6.next()) {
+                        var match = matches_6_1.value;
+                        try {
+                            var text = '[' + static_eval_1.default(ast, { '@': match.value }) + ']';
+                            var lexResult = lexer_1.lexer.tokenize(text);
+                            parser.input = lexResult.tokens;
+                            var res = this.visit(parser.subscriptComponent(), [{ input: r.input, matches: [match] }]);
+                            if (res && res.length) {
+                                r.matches = r.matches.concat(res[0].matches);
+                            }
+                        }
+                        catch (_c) { }
+                    }
+                }
+                catch (e_40_1) { e_40 = { error: e_40_1 }; }
+                finally {
+                    try {
+                        if (matches_6_1 && !matches_6_1.done && (_b = matches_6.return)) _b.call(matches_6);
+                    }
+                    finally { if (e_40) throw e_40.error; }
                 }
             }
-            catch (_a) { }
+        }
+        catch (e_39_1) { e_39 = { error: e_39_1 }; }
+        finally {
+            try {
+                if (result_9_1 && !result_9_1.done && (_a = result_9.return)) _a.call(result_9);
+            }
+            finally { if (e_39) throw e_39.error; }
         }
         return result;
     };
     EvalVisitor.prototype.filterExpression = function (ctx, scope) {
+        var e_41, _a, e_42, _b;
         var script = ctx.script_expression[0].image;
         var ast = esprima_1.parseScript(script, {}).body[0].expression;
-        var result = [];
-        for (var _i = 0, scope_10 = scope; _i < scope_10.length; _i++) {
-            var match = scope_10[_i];
-            try {
-                if (static_eval_1.default(ast, { '@': match.value })) {
-                    result.push(match);
+        var result = scope;
+        try {
+            for (var result_10 = __values(result), result_10_1 = result_10.next(); !result_10_1.done; result_10_1 = result_10.next()) {
+                var res = result_10_1.value;
+                var matches = res.matches;
+                res.matches = [];
+                try {
+                    for (var matches_7 = (e_42 = void 0, __values(matches)), matches_7_1 = matches_7.next(); !matches_7_1.done; matches_7_1 = matches_7.next()) {
+                        var match = matches_7_1.value;
+                        try {
+                            if (static_eval_1.default(ast, { '@': match.value })) {
+                                res.matches.push(match);
+                            }
+                        }
+                        catch (_c) { }
+                    }
+                }
+                catch (e_42_1) { e_42 = { error: e_42_1 }; }
+                finally {
+                    try {
+                        if (matches_7_1 && !matches_7_1.done && (_b = matches_7.return)) _b.call(matches_7);
+                    }
+                    finally { if (e_42) throw e_42.error; }
                 }
             }
-            catch (_a) { }
+        }
+        catch (e_41_1) { e_41 = { error: e_41_1 }; }
+        finally {
+            try {
+                if (result_10_1 && !result_10_1.done && (_a = result_10.return)) _a.call(result_10);
+            }
+            finally { if (e_41) throw e_41.error; }
         }
         return result;
     };
@@ -7868,6 +8794,15 @@ function slice(array, start, end, step) {
 /***/ (function(module, exports) {
 
 module.exports = require("static-eval");
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+
 
 /***/ })
 /******/ ]);

@@ -1,16 +1,9 @@
-import { ILexingError, IRecognitionException } from 'chevrotain';
-import { Match } from './lib';
+import { Errors, EvalResult } from './lib';
 export * from './lib';
 declare const _default: {
     eval: typeof evaluate;
+    autocomplete: typeof autocomplete;
 };
 export default _default;
-export interface EvalResult {
-    input: Object;
-    matches: Match[];
-}
-export interface Errors {
-    lexErrors: ILexingError[];
-    parseErrors: IRecognitionException[];
-}
 declare function evaluate(jsonpath: string, ...objects: Object[]): EvalResult[] | Errors;
+declare function autocomplete(jsonpath: string, ...objects: Object[]): Set<string | number> | Errors;

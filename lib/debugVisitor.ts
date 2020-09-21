@@ -6,6 +6,8 @@ import { isNode } from './util';
 
 const BaseVisitor = parser.getBaseCstVisitorConstructor();
 
+const debug = (thing: any) => inspect(thing, { colors: true, depth: 100 });
+
 export class DebugVisitor extends BaseVisitor {
 	constructor() {
 		super();
@@ -14,14 +16,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	jsonpath(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -29,14 +31,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	pathComponents(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -44,14 +46,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	pathComponent(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -59,14 +61,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	memberComponent(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -74,14 +76,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	descendantMemberComponent(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -89,14 +91,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	childMemberComponent(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -104,14 +106,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	leadingChildMemberExpression(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -119,14 +121,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	memberExpression(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -134,29 +136,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	subscriptComponent(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
-				}
-			}
-		}
-	}
-
-	childSubscriptComponent(ctx: CstNode) {
-		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
-		for (let childArray of _.values(ctx)) {
-			for (let child of childArray) {
-				if (isNode(child)) {
-					this.visit(child);
-				} else {
-					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -164,14 +151,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	descendantSubscriptComponent(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -179,14 +166,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	subscript(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -194,14 +181,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	subscriptExpression(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -209,14 +196,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	subscriptExpressionList(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -224,14 +211,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	subscriptExpressionListable(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -239,14 +226,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	stringLiteral(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -254,14 +241,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	arraySlice(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -269,14 +256,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	scriptExpression(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}
@@ -284,14 +271,14 @@ export class DebugVisitor extends BaseVisitor {
 
 	filterExpression(ctx: CstNode) {
 		// eslint-disable-next-line no-console
-		console.log(inspect(ctx, { colors: true }));
+		console.log(debug(ctx));
 		for (let childArray of _.values(ctx)) {
 			for (let child of childArray) {
 				if (isNode(child)) {
 					this.visit(child);
 				} else {
 					// eslint-disable-next-line no-console
-					console.log(inspect(child, { colors: true }));
+					console.log(debug(child));
 				}
 			}
 		}

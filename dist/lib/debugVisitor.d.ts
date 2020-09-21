@@ -11,7 +11,6 @@ export declare class DebugVisitor extends BaseVisitor {
     leadingChildMemberExpression(ctx: CstNode): void;
     memberExpression(ctx: CstNode): void;
     subscriptComponent(ctx: CstNode): void;
-    childSubscriptComponent(ctx: CstNode): void;
     descendantSubscriptComponent(ctx: CstNode): void;
     subscript(ctx: CstNode): void;
     subscriptExpression(ctx: CstNode): void;

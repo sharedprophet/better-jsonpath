@@ -2,17 +2,17 @@ import _ from 'underscore';
 import { createToken, Lexer } from 'chevrotain';
 import { parseScript } from './esprima';
 
-export const dollar = createToken({ name: 'dollar', pattern: /\$/ });
-export const dot_dot = createToken({ name: 'dot_dot', pattern: /\.\./ });
-export const dot = createToken({ name: 'dot', pattern: /\./, longer_alt: dot_dot });
-export const square_brace_open = createToken({ name: 'square_brace_open', pattern: /\[/ });
-export const square_brace_close = createToken({ name: 'square_brace_close', pattern: /\]/ });
-export const paren_open = createToken({ name: 'paren_open', pattern: /\(/ });
-export const paren_close = createToken({ name: 'paren_close', pattern: /\)/ });
-export const question_mark = createToken({ name: 'question_mark', pattern: /\?/ });
-export const comma = createToken({ name: 'comma', pattern: /,/ });
-export const colon = createToken({ name: 'colon', pattern: /:/ });
-export const asterisk = createToken({ name: 'asterisk', pattern: /\*/ });
+export const dollar = createToken({ name: 'dollar', pattern: /\$/, label: '$' });
+export const dot_dot = createToken({ name: 'dot_dot', pattern: /\.\./, label: '..' });
+export const dot = createToken({ name: 'dot', pattern: /\./, longer_alt: dot_dot, label: '.' });
+export const square_brace_open = createToken({ name: 'square_brace_open', pattern: /\[/, label: '[' });
+export const square_brace_close = createToken({ name: 'square_brace_close', pattern: /\]/, label: ']' });
+export const paren_open = createToken({ name: 'paren_open', pattern: /\(/, label: '(' });
+export const paren_close = createToken({ name: 'paren_close', pattern: /\)/, label: ')' });
+export const question_mark = createToken({ name: 'question_mark', pattern: /\?/, label: '?' });
+export const comma = createToken({ name: 'comma', pattern: /,/, label: ',' });
+export const colon = createToken({ name: 'colon', pattern: /:/, label: ':' });
+export const asterisk = createToken({ name: 'asterisk', pattern: /\*/, label: '*' });
 
 export const integer_pattern = /^-?(?:0|[1-9]\d*)$/;
 export const integer = createToken({ name: 'integer', pattern: /-?(?:0|[1-9]\d*)/ });

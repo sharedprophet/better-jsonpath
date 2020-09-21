@@ -1,6 +1,6 @@
 {
 	"name": "better-jsonpath",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"description": "A better JSONPath library",
 	"main": "dist/index.js",
 	"module": "dist/better-jsonpath.umd.js",
@@ -8,30 +8,32 @@
 	"author": "Ethan Johnson",
 	"license": "MIT",
 	"scripts": {
+		"scratch": "ts-node _scratch.ts",
 		"build": "rimraf dist && webpack --config build/webpack.config.js"
 	},
 	"dependencies": {
-		"chevrotain": "^4.3.2",
-		"static-eval": "^2.0.2",
-		"underscore": "^1.9.1"
+		"chevrotain": "^7.0.2",
+		"static-eval": "^2.1.0",
+		"underscore": "^1.11.0"
 	},
 	"devDependencies": {
 		"@types/esprima": "^4.0.2",
-		"@types/estree": "^0.0.39",
-		"@types/node": "^11.13.2",
+		"@types/estree": "0.0.39",
+		"@types/node": "^14.11.1",
 		"@types/static-eval": "^0.2.30",
-		"@types/underscore": "^1.8.14",
+		"@types/underscore": "^1.10.23",
 		"@typescript-eslint/eslint-plugin": "^4.1.1",
 		"@typescript-eslint/parser": "^4.1.1",
 		"eslint": "^7.9.0",
+		"esprima": "^4.0.1",
 		"rimraf": "2.6.3",
-		"terser-webpack-plugin": "1.2.3",
-		"ts-loader": "^5.3.3",
-		"ts-node": "^8.0.3",
-		"typescript": "^3.4.2",
-		"webpack": "^4.30.0",
-		"webpack-cli": "3.3.0",
-		"webpack-merge": "^4.2.1",
-		"webpack-node-externals": "1.7.2"
+		"terser-webpack-plugin": "4.2.2",
+		"ts-loader": "^8.0.4",
+		"ts-node": "^9.0.0",
+		"typescript": "^4.0.3",
+		"webpack": "^4.44.2",
+		"webpack-cli": "3.3.12",
+		"webpack-merge": "^5.1.4",
+		"webpack-node-externals": "2.5.2"
 	}
 }

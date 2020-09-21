@@ -1,25 +1,29 @@
 import { CstChildrenDictionary, ICstVisitor } from 'chevrotain';
 import { Match } from './match';
-declare const BaseVisitor: new (...args: any[]) => ICstVisitor<Match[], Match[]>;
+declare const BaseVisitor: new (...args: any[]) => ICstVisitor<EvalResult[], EvalResult[]>;
+export interface EvalResult {
+    input: Object;
+    matches: Match[];
+}
 export declare class EvalVisitor extends BaseVisitor {
     constructor();
-    jsonpath(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    pathComponents(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    pathComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    memberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    descendantMemberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    descendantSubscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    childMemberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    leadingChildMemberExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    memberExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    subscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    subscript(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    subscriptExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    subscriptExpressionList(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    subscriptExpressionListable(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    stringLiteral(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    arraySlice(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    scriptExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[];
-    filterExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[];
+    jsonpath(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    pathComponents(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    pathComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    memberComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    descendantMemberComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    descendantSubscriptComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    childMemberComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    leadingChildMemberExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    memberExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    subscriptComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    subscript(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    subscriptExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    subscriptExpressionList(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    subscriptExpressionListable(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    stringLiteral(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    arraySlice(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    scriptExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
+    filterExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[];
 }
 export {};

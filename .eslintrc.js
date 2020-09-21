@@ -16,8 +16,8 @@ module.exports = {
 		indent: ['error', 'tab', {
 			SwitchCase: 1,
 			MemberExpression: 1,
-			FunctionDeclaration: { parameters: 2 },
-			FunctionExpression: { parameters: 2 },
+			FunctionDeclaration: { parameters: 1 },
+			FunctionExpression: { parameters: 1 },
 			CallExpression: { arguments: 1 }
 		}],
 		'linebreak-style': ['error', 'unix'],
@@ -46,8 +46,8 @@ module.exports = {
 		'@typescript-eslint/indent': ['error', 'tab', {
 			SwitchCase: 1,
 			MemberExpression: 1,
-			FunctionDeclaration: { parameters: 2 },
-			FunctionExpression: { parameters: 2 },
+			FunctionDeclaration: { parameters: 1 },
+			FunctionExpression: { parameters: 1 },
 			CallExpression: { arguments: 1 }
 		}]
 	}

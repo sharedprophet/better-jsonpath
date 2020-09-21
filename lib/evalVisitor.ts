@@ -8,7 +8,13 @@ import { JSONPathParser, parser } from './parser';
 import { Match } from './match';
 import { isNode } from './util';
 
-const BaseVisitor = parser.getBaseCstVisitorConstructor() as new (...args: any[]) => ICstVisitor<Match[], Match[]>;
+const BaseVisitor = parser.getBaseCstVisitorConstructor() as new (...args: any[]) =>
+ICstVisitor<EvalResult[], EvalResult[]>;
+
+export interface EvalResult {
+	input: Object;
+	matches: Match[];
+}
 
 export class EvalVisitor extends BaseVisitor {
 	constructor() {
@@ -16,22 +22,24 @@ export class EvalVisitor extends BaseVisitor {
 		this.validateVisitor();
 	}
 
-	jsonpath(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	jsonpath(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
+		let result = scope;
 		if (!ctx.dollar) {
 			for (let child of ctx.leadingChildMemberExpression) {
 				if (!isNode(child)) {
 					continue;
 				}
-				scope = this.visit(child, scope).filter(m => typeof m.value === 'object');
+				result = this.visit(child, scope);
 			}
 		}
-		for (let match of scope) {
-			match.path.push('$');
+		for (let res of result) {
+			for (let match of res.matches) {
+				match.path.unshift('$');
+			}
 		}
 		if (!ctx.pathComponents) {
-			return scope;
+			return result;
 		}
-		let result = scope;
 		for (let component of ctx.pathComponents) {
 			if (!isNode(component)) {
 				continue;
@@ -41,7 +49,7 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	pathComponents(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	pathComponents(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let result = scope;
 		for (let component of ctx.pathComponent) {
 			if (!isNode(component)) {
@@ -52,7 +60,7 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	pathComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	pathComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let result = scope;
 		let component = ctx.subscriptComponent || ctx.descendantSubscriptComponent || ctx.memberComponent;
 		for (let element of component) {
@@ -64,7 +72,7 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	memberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	memberComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let result = scope;
 		let component = ctx.descendantMemberComponent || ctx.childMemberComponent;
 		for (let element of component) {
@@ -76,15 +84,20 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	descendantMemberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
-		let newScope = _.clone(scope);
-		for (let i = 0; i < newScope.length; i++) {
-			let obj = newScope[i].value;
-			for (let prop of _.allKeys(obj)) {
-				newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+	descendantMemberComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
+		let result = scope;
+
+		for (let res of result) {
+			let newScope = _.clone(res.matches);
+			for (let i = 0; i < newScope.length; i++) {
+				let obj = newScope[i].value;
+				for (let prop of _.allKeys(obj)) {
+					newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+				}
 			}
+			res.matches = newScope;
 		}
-		let result = newScope;
+
 		for (let element of ctx.memberExpression) {
 			if (!isNode(element)) {
 				continue;
@@ -94,15 +107,20 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	descendantSubscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
-		let newScope = _.clone(scope);
-		for (let i = 0; i < newScope.length; i++) {
-			let obj = newScope[i].value;
-			for (let prop of _.allKeys(obj)) {
-				newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+	descendantSubscriptComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
+		let result = scope;
+
+		for (let res of result) {
+			let newScope = _.clone(res.matches);
+			for (let i = 0; i < newScope.length; i++) {
+				let obj = newScope[i].value;
+				for (let prop of _.allKeys(obj)) {
+					newScope.push({ path: newScope[i].path.concat(prop), value: obj[prop] });
+				}
 			}
+			res.matches = newScope;
 		}
-		let result = newScope;
+
 		for (let element of ctx.subscriptComponent) {
 			if (!isNode(element)) {
 				continue;
@@ -112,7 +130,7 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	childMemberComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	childMemberComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let result = scope;
 		for (let element of ctx.memberExpression) {
 			if (!isNode(element)) {
@@ -123,7 +141,7 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	leadingChildMemberExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	leadingChildMemberExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let result = scope;
 		for (let element of ctx.memberExpression) {
 			if (!isNode(element)) {
@@ -134,7 +152,7 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	memberExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	memberExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let key!: string;
 		let token!: IToken;
 		for (let prop of _.allKeys(ctx)) {
@@ -147,27 +165,37 @@ export class EvalVisitor extends BaseVisitor {
 				token = child as IToken;
 			}
 		}
-		let result: Match[] = [];
-		switch (key) {
-			case 'integer':
-				for (let match of scope) {
-					if (match.value[Number(token.image)] !== undefined) {
-						result.push({ path: match.path.concat(Number(token.image)), value: match.value[token.image] });
+		let result = scope;
+		for (let res of result) {
+			let matches = res.matches;
+			res.matches = [];
+			switch (key) {
+				case 'integer':
+					for (let match of matches) {
+						if (match.value[Number(token.image)] !== undefined) {
+							res.matches.push({
+								path: match.path.concat(Number(token.image)),
+								value: match.value[token.image]
+							});
+						}
 					}
-				}
-				break;
-			case 'identifier':
-				for (let match of scope) {
-					if (match.value[token.image] !== undefined) {
-						result.push({ path: match.path.concat(token.image), value: match.value[token.image] });
+					break;
+				case 'identifier':
+					for (let match of matches) {
+						if (match.value[token.image] !== undefined) {
+							res.matches.push({
+								path: match.path.concat(token.image),
+								value: match.value[token.image]
+							});
+						}
 					}
-				}
-				break;
+					break;
+			}
 		}
 		return result;
 	}
 
-	subscriptComponent(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	subscriptComponent(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let result = scope;
 		for (let element of ctx.subscript) {
 			if (!isNode(element)) {
@@ -178,7 +206,7 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	subscript(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	subscript(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let result = scope;
 		let component = ctx.subscriptExpression || ctx.subscriptExpressionList;
 		for (let element of component) {
@@ -190,7 +218,7 @@ export class EvalVisitor extends BaseVisitor {
 		return result;
 	}
 
-	subscriptExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	subscriptExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		for (let prop of _.allKeys(ctx)) {
 			if (ctx[prop] && isNode(ctx[prop][0])) {
 				let node = ctx[prop][0] as CstNode;
@@ -198,32 +226,42 @@ export class EvalVisitor extends BaseVisitor {
 			}
 		}
 		//asterisk
-		let result: Match[] = [];
-		for (let match of scope) {
-			for (let prop of _.allKeys(match.value).filter(p => match.value[p] !== undefined)) {
-				if (integer_pattern.test(prop)) {
-					let num = Number(prop);
-					result.push({ path: match.path.concat(num), value: match.value[num] });
-				} else {
-					result.push({ path: match.path.concat(prop), value: match.value[prop] });
+		let result = scope;
+		for (let res of result) {
+			let matches = res.matches;
+			res.matches = [];
+			for (let match of matches) {
+				for (let prop of _.allKeys(match.value).filter(p => match.value[p] !== undefined)) {
+					if (integer_pattern.test(prop)) {
+						let num = Number(prop);
+						res.matches.push({ path: match.path.concat(num), value: match.value[num] });
+					} else {
+						res.matches.push({ path: match.path.concat(prop), value: match.value[prop] });
+					}
 				}
 			}
 		}
 		return result;
 	}
 
-	subscriptExpressionList(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
-		let result: Match[] = [];
-		for (let element of ctx.subscriptExpressionListable) {
-			if (!isNode(element)) {
-				continue;
+	subscriptExpressionList(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
+		let result = scope;
+		for (let res of result) {
+			let matches = res.matches;
+			res.matches = [];
+			for (let element of ctx.subscriptExpressionListable) {
+				if (!isNode(element)) {
+					continue;
+				}
+				res.matches = res.matches.concat(
+					_.flatten(this.visit(element, [{ ...res, matches }]).map(r => r.matches))
+				);
 			}
-			result = result.concat(this.visit(element, scope));
 		}
 		return result;
 	}
 
-	subscriptExpressionListable(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	subscriptExpressionListable(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		for (let prop of _.allKeys(ctx)) {
 			if (ctx[prop] && isNode(ctx[prop][0])) {
 				let node = ctx[prop][0] as CstNode;
@@ -232,43 +270,55 @@ export class EvalVisitor extends BaseVisitor {
 		}
 		//integer
 		let token = ctx.integer[0] as IToken;
-		let result: Match[] = [];
+		let result = scope;
 		let idx = Number(token.image);
-		for (let match of scope) {
-			if (match.value[idx] !== undefined) {
-				result.push({ path: match.path.concat(idx), value: match.value[idx] });
+		for (let res of result) {
+			let matches = res.matches;
+			res.matches = [];
+			for (let match of matches) {
+				if (match.value[idx] !== undefined) {
+					res.matches.push({ path: match.path.concat(idx), value: match.value[idx] });
+				}
 			}
 		}
 		return result;
 	}
 
-	stringLiteral(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
-		let result: Match[] = [];
+	stringLiteral(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
+		let result = scope;
 		let component = ctx.quoted_string_double || ctx.quoted_string_single;
 		for (let element of component) {
 			if (isNode(element)) {
 				continue;
 			}
 			let str = element.image.substr(1, element.image.length - 2);
-			for (let match of scope) {
-				if (match.value[str] !== undefined) {
-					result.push({ path: match.path.concat(str), value: match.value[str] });
+			for (let res of result) {
+				let matches = res.matches;
+				res.matches = [];
+				for (let match of matches) {
+					if (match.value[str] !== undefined) {
+						res.matches.push({ path: match.path.concat(str), value: match.value[str] });
+					}
 				}
 			}
 		}
 		return result;
 	}
 
-	arraySlice(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
-		let result: Match[] = [];
-		if (!ctx.integer.length) {
-			for (let match of scope) {
-				if (Array.isArray(match.value)) {
-					result.push(match);
+	arraySlice(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
+		let result: EvalResult[] = [];
+		for (let r of scope) {
+			let res: EvalResult = { ...r, matches: [] };
+			if (!ctx.integer?.length) {
+				for (let match of r.matches) {
+					if (Array.isArray(match.value)) {
+						res.matches.push(match);
+					}
 				}
 			}
+			result.push(res);
 		}
-		if (result.length) {
+		if (!ctx.integer?.length) {
 			return result;
 		}
 		let integers = ctx.integer as IToken[];
@@ -294,43 +344,56 @@ export class EvalVisitor extends BaseVisitor {
 				}
 			}
 		}
-		for (let match of scope) {
-			if (Array.isArray(match.value)) {
-				result.push({ path: match.path, value: slice(match.value, start, end, step) });
+		result = [];
+		for (let r of scope) {
+			let res: EvalResult = { ...r, matches: [] };
+			for (let match of r.matches) {
+				if (Array.isArray(match.value)) {
+					res.matches.push({ path: match.path, value: slice(match.value, start, end, step) });
+				}
+			}
+			result.push(res);
+		}
+		return result;
+	}
+
+	scriptExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
+		let script = (ctx.script_expression[0] as IToken).image;
+		let ast = (parseScript(script, {}).body[0] as ExpressionStatement).expression;
+		let parser = new JSONPathParser();
+		let result = scope;
+		for (let r of result) {
+			let matches = r.matches;
+			r.matches = [];
+			for (let match of matches) {
+				try {
+					let text = '[' + evaluate(ast, { '@': match.value }) + ']';
+					let lexResult = lexer.tokenize(text);
+					parser.input = lexResult.tokens;
+					let res = this.visit(parser.subscriptComponent(), [{ input: r.input, matches: [match] }]);
+					if (res && res.length) {
+						r.matches = r.matches.concat(res[0].matches);
+					}
+				} catch { }
 			}
 		}
 		return result;
 	}
 
-	scriptExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
+	filterExpression(ctx: CstChildrenDictionary, scope: EvalResult[]): EvalResult[] {
 		let script = (ctx.script_expression[0] as IToken).image;
 		let ast = (parseScript(script, {}).body[0] as ExpressionStatement).expression;
-		let parser = new JSONPathParser();
-		let result: Match[] = [];
-		for (let match of scope) {
-			try {
-				let text = '[' + evaluate(ast, { '@': match.value }) + ']';
-				let lexResult = lexer.tokenize(text);
-				parser.input = lexResult.tokens;
-				let res = this.visit(parser.subscriptComponent(), [match]);
-				if (res && res.length) {
-					result = result.concat(res);
-				}
-			} catch { }
-		}
-		return result;
-	}
-
-	filterExpression(ctx: CstChildrenDictionary, scope: Match[]): Match[] {
-		let script = (ctx.script_expression[0] as IToken).image;
-		let ast = (parseScript(script, {}).body[0] as ExpressionStatement).expression;
-		let result: Match[] = [];
-		for (let match of scope) {
-			try {
-				if (evaluate(ast, { '@': match.value })) {
-					result.push(match);
-				}
-			} catch { }
+		let result = scope;
+		for (let res of result) {
+			let matches = res.matches;
+			res.matches = [];
+			for (let match of matches) {
+				try {
+					if (evaluate(ast, { '@': match.value })) {
+						res.matches.push(match);
+					}
+				} catch { }
+			}
 		}
 		return result;
 	}

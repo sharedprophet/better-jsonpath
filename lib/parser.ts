@@ -1,5 +1,13 @@
 import _ from 'underscore';
-import { Parser } from 'chevrotain';
+import {
+	createTokenInstance,
+	CstParser,
+	CstNode,
+	ILexingError,
+	IRecognitionException,
+	ISyntacticContentAssistPath,
+	IToken
+} from 'chevrotain';
 import {
 	allTokens,
 	asterisk,
@@ -21,13 +29,48 @@ import {
 	square_brace_close
 } from './lexer';
 
-export class JSONPathParser extends Parser {
+export interface Errors {
+	lexErrors: ILexingError[];
+	parseErrors: IRecognitionException[];
+}
+
+export class JSONPathParser extends CstParser {
 	constructor() {
 		super(allTokens);
 		this.performSelfAnalysis();
 	}
 
-	parse(text: string) {
+	autocomplete(text: string): { options?: ISyntacticContentAssistPath[], cst?: CstNode } & Errors {
+		let lexResult = lexer.tokenize(text);
+		let input = lexResult.tokens;
+		let options = this.computeContentAssist('jsonpath', input);
+
+		this.setInput(input);
+		let cst: CstNode | undefined;
+		while (input.length && !cst) {
+			cst = this.jsonpath();
+			if (!cst) {
+				input = input.slice(0, input.length - 1);
+				this.setInput(input);
+			}
+		}
+		return {
+			options,
+			cst,
+			lexErrors: lexResult.errors,
+			parseErrors: _.clone(this.errors)
+		};
+	}
+
+	setInput(input: IToken[]) {
+		let temp = [...input, createTokenInstance(asterisk, '*', NaN, NaN, NaN, NaN, NaN, NaN)];
+		if (input.length && input[input.length - 1].tokenType === square_brace_open) {
+			temp.push(createTokenInstance(square_brace_close, ']', NaN, NaN, NaN, NaN, NaN, NaN));
+		}
+		this.input = temp;
+	}
+
+	parse(text: string): { cst?: CstNode } & Errors {
 		let lexResult = lexer.tokenize(text);
 		this.input = lexResult.tokens;
 		return {

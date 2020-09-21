@@ -15,6 +15,7 @@
 		"declaration": true,
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
+		"downlevelIteration": true,
 		"outDir": "dist"
 	},
 	"include": ["./index.ts"],
